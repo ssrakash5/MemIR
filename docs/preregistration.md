@@ -1,13 +1,17 @@
 # Pre-registration
 
 **Status: skeleton draft, NOT the committed pre-registration.** Updated
-2026-08-11 (second revision, same day) to match the finalized
-generation/analysis split in `configs/experiment_grid.yaml`: `depth` and
-`attribution_threshold` are analysis-time factors computed post-hoc from a
-persisted execution trace, not separate generation runs. Still not ready to
-gate data generation: κ validation hasn't run, oracle-authoring method is
-undecided, and the scenario_id/pseudo-replication question below is still
-open. **Do not generate experiment data against this version.**
+2026-08-11 (third revision, same day) to match the finalized scenario
+design in `configs/experiment_grid.yaml`: 24 `scenario_id`s (4
+`injection_style` × 6 independent scenarios each) as the real
+sampling/bootstrap unit, `prompt_style` demoted to a balanced per-scenario
+attribute, and oracle authoring resolved to programmatic generation from a
+human-approved scenario spec. `depth`/`attribution_threshold` remain
+analysis-time factors, now validated by `spike/06_prefix_property.py`
+(GREEN). Still not ready to gate data generation: κ validation hasn't run,
+the 24 actual scenario specs don't exist yet (schema only), and sample
+sizes below still need the real numbers plugged in once the pilot runs.
+**Do not generate experiment data against this version.**
 
 ---
 
@@ -42,21 +46,30 @@ See `configs/experiment_grid.yaml` for the authoritative, finalized
 generation/analysis split.
 
 - **Generation factors** (each combination produces one real trace —
-  expensive): `top_k` {1,3,5,10}, `write_fanout` {1,2,3}, `injection_style`
-  (4 values), `derivation_transform` (4 values, matching MemLineage §5.3's
-  summarize/paraphrase/refine/continue vocabulary), `prompt_style`
-  (terse/verbose/structured — renamed from `summarization_prompt`),
-  `seeds` {0,1,2}. **1,728 generated traces.**
+  expensive): `scenario_id` (24 values: 4 `injection_style` × 6
+  independently-constructed scenarios each — the real sampling unit, see
+  §4/§5), `top_k` {1,3,5,10}, `write_fanout` {1,2,3}, `derivation_transform`
+  (4 values, matching MemLineage §5.3's summarize/paraphrase/refine/continue
+  vocabulary), `seeds` {0,1,2}. `prompt_style` (terse/verbose/structured —
+  renamed from `summarization_prompt`) is a **balanced per-scenario
+  attribute** (2 of each style's 6 scenarios get each `prompt_style` value),
+  not a crossed factorial axis. **3,456 generated traces**
+  (24×4×3×4×3).
 - **Analysis factors** (computed post-hoc from a trace's persisted
   `(parent, child, attribution_score, run_id)` edges, no re-generation
   needed): `depth` {0..5}, `attribution_threshold` {null, 0.5, 0.7, 0.85},
-  `containment_policy` {flat_transitive, depth_aware}. **41,472 depth ×
-  threshold analysis cells** derivable from the 1,728 traces; containment
-  policy is a further analysis layer on top of that.
+  `containment_policy` {flat_transitive, depth_aware}. **82,944 depth ×
+  threshold analysis cells** derivable from the 3,456 traces (3,456×6×4);
+  containment policy is a further analysis layer on top of that.
 - **Generation controls:** `max_depth=5` as a hard external harness stop
-  condition NOT exposed to the agent's prompt (so a depth-d prefix of a
-  depth-5 trace is a valid depth-d trace on its own — the "prefix
-  property" this whole split depends on). Model, embedding model, corpus
+  condition NOT exposed to the agent's prompt. The prefix property this
+  split depends on (a depth-d prefix of a depth-5 trace equals a trace
+  generated with `max_depth=d` directly) is now **validated**:
+  `spike/06_prefix_property.py` passed GREEN on 2026-08-11 for d=0..4,
+  including a negative control proving the check can detect a real
+  violation. Caveat carried from that spike: it validates the *design* via
+  a deterministic mock, not the eventual real `eval/` harness — that needs
+  its own equivalent check once built. Model, embedding model, corpus
   size — still `TBD`.
 - **Benchmark-design requirement (not a variable, a construction rule):**
   every generation run's retrieved context must mix true parents
@@ -69,58 +82,66 @@ generation/analysis split.
 ## 3. Labeling protocol
 
 See `docs/labeling_protocol.md`, now with two independent label layers:
-content-level (CARRIES/REFERENCES/CLEAN, via the automated 3-signal
-labeler) and oracle/structural (`STRUCTURAL_PARENT`/`CO_RETRIEVED` edges,
+content-level (CARRIES/REFERENCES/CLEAN, evaluated against each scenario's
+`semantic_target`, via the automated 3-signal labeler) and
+oracle/structural (`STRUCTURAL_PARENT`/`CO_RETRIEVED` edges,
 `COMPROMISED_ROOT`/`TRUE_DESCENDANT`/`COEXPOSED`/`UNRELATED` nodes, set at
-corpus-construction time). **Two things not yet decided, both blocking:**
-(a) whether oracle labels get hand-authored per scenario or generated
-programmatically with spot-checking, and (b) whether the κ validation
-needs to be run separately against each label layer (content-label
-agreement vs. a separate check that the corpus's claimed oracle structure
-holds up under inspection).
+corpus-construction time). **Oracle authoring is now RESOLVED:**
+programmatic generation from a human-approved scenario specification (see
+`configs/experiment_grid.yaml`'s "Scenario design" section for the schema)
+— a human approves scenario semantics and true-dependency structure, code
+deterministically derives oracle edges/nodes, the LLM only generates
+surface text. **Still open:** whether the κ validation needs to run
+separately against each label layer (content-label agreement vs. a
+separate check that the corpus's claimed oracle structure holds up under
+inspection of a sample of generation traces).
 
 ## 4. Sample sizes
 
-**Not yet determined**, pending:
+**Scenario count is now RESOLVED: 24 `scenario_id`s (4 `injection_style` ×
+6 independently-constructed scenarios each)** — see
+`configs/experiment_grid.yaml`'s "Scenario design" section. This closes
+the pseudo-replication risk: seeds now measure within-scenario model/run
+stochasticity, and generalization across independently constructed attack
+instances of a style is what the 6-scenario replication is for.
+
+**Still not fully determined:**
 - The distractor-per-run design (how many true parents vs. distractors per
-  retrieval — this directly sets how hard the precision problem is, so it
-  needs to be a deliberate choice, not incidental).
-- **Pseudo-replication check (new, from second review):** if each
-  `injection_style` corresponds to one hand-written payload and the 3
-  seeds just regenerate that same scenario under model stochasticity, the
-  seeds tell us nothing about generalization across independently
-  constructed attack instances of that style. Either the corpus supplies
-  multiple independently constructed `scenario_id`s per `injection_style`
-  (preferred — bootstrap CIs over `scenario_id`, not over factorial
-  cells), or this must be stated as an explicit limitation. **Currently
-  undecided** — `configs/experiment_grid.yaml` flags this as
-  `scenario_id_status: UNDECIDED`. This has to be resolved before sample
-  sizes can be set, since "how many scenarios per style" is itself a
-  sample-size question.
+  retrieval within each scenario's `distractor_pool` — this directly sets
+  how hard the precision problem is, so it needs to be a deliberate
+  choice per scenario, not incidental).
+- The actual 24 scenario specifications don't exist yet — only the schema
+  does. Writing them (or at minimum the pilot's 4) is the next concrete
+  task before any real generation run.
 - Target scale from `docs/labeling_protocol.md`: ≥200 injection instances
-  across ≥4 styles, chains to depth ≥3 — a floor for the labeling
-  validation corpus specifically, not necessarily the generation-run count.
+  across ≥4 styles, chains to depth ≥3 — a floor for the *labeling
+  validation* corpus specifically, distinct from and smaller than the
+  24-scenario / 3,456-trace generation design (see that document's
+  clarification of this distinction).
 
 ## 5. Statistics
 
 - Paired bootstrap, 10,000 resamples, for all point estimates.
 - 95% confidence intervals on every reported number.
 - Wilcoxon signed-rank test for paired comparisons.
-- **Bootstrap resampling unit is `scenario_id` once that axis exists (see
-  §4), not raw factorial cells** — otherwise seeds within one hand-written
-  scenario would be pseudo-replicated into the CI.
+- **Bootstrap resampling unit is `scenario_id`, stratified by
+  `injection_style`, not raw factorial cells or trace rows** — seeds
+  within one scenario are nested repeated measurements, not independent
+  samples; resampling 3,456 trace rows as though independent would be
+  pseudo-replication.
 - **Marginalization rule (preregistered estimand — balanced marginal
   means over the experimental distribution we defined, NOT real-world
-  deployment prevalence):** average seeds within each cell first, then
-  give every level of a marginalized factor equal weight regardless of
-  cell count underneath it. Per-hypothesis marginalization plan is spelled
+  deployment prevalence):** average seeds within each scenario-condition
+  first, then give every `scenario_id` equal weight regardless of cell
+  count underneath it. Per-hypothesis marginalization plan is spelled
   out in `configs/experiment_grid.yaml`'s trailing comment block — H1
   holds top_k×write_fanout×depth explicit at `attribution_threshold=null`;
   H2 holds attribution_threshold×depth×top_k×write_fanout explicit and
   reports a frontier; H3 holds derivation_transform×depth explicit at
   `attribution_threshold=null`; H4 applies containment_policy post-hoc to
-  every reconstructed graph. All four marginalize equally over whichever
-  generation factors aren't held explicit.
+  every reconstructed graph. All four marginalize equally over scenario_id
+  (stratified by injection_style) and whichever other generation factors
+  aren't held explicit.
 - **depth=0 special case:** at depth 0 the compromised root may have zero
   downstream descendants, giving \|B_true\|=0 and making R_BR/inflation
   undefined. **Do not coerce to zero.** Report P_BR/R_BR/inflation as N/A
@@ -166,13 +187,21 @@ first 2026-08-11 revision):
 
 1. ~~Positioning correction~~ — done 2026-08-11.
 2. ~~Generation/analysis split, 41,472-cell arithmetic correction,
-   distractor requirement~~ — done 2026-08-11 (this revision).
-3. `docs/labeling_protocol.md` needs: κ validation run and passed (against
-   both label layers — undecided how), remaining 9 worked examples, and
-   the oracle-authoring method decided (hand vs. programmatic).
-4. `scenario_id`/pseudo-replication question (§4/§5 above) needs a
-   decision — this determines whether current sample-size thinking is even
-   valid.
-5. Sample sizes need to be set once §3/§4 resolve.
-6. Once 3–5 are done, re-commit with a note marking it as the actual
+   distractor requirement~~ — done 2026-08-11.
+3. ~~Prefix property validated~~ — `spike/06_prefix_property.py` GREEN,
+   2026-08-11.
+4. ~~MemSecBench full read~~ — done 2026-08-11; positioning survives
+   unchanged (see `docs/positioning.md`).
+5. ~~`scenario_id`/pseudo-replication question, oracle-authoring method~~ —
+   RESOLVED 2026-08-11 (this revision): 24 scenarios, programmatic oracle
+   generation from human-approved specs.
+6. **Still open:** the 24 scenario specifications themselves don't exist
+   yet (schema only) — writing them is the next concrete task.
+7. `docs/labeling_protocol.md` needs: κ validation run and passed (still
+   undecided whether as one pass or two, against the content vs. oracle
+   label layers), remaining 9 worked examples.
+8. MPBench, AgentPoison, MINJA still need full reads (see
+   `docs/prior_art.md`) — low priority, none currently load-bearing for a
+   specific claim.
+9. Once 6–7 are done, re-commit with a note marking it as the actual
    pre-registration timestamp; no data generation before that commit.
