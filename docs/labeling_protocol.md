@@ -213,7 +213,7 @@ derivation chains to depth ≥3 — this remains the floor for the *labeling
 validation* corpus specifically. **Distinct from, and smaller than,** the
 24-scenario / 3,456-generated-trace design now frozen in
 `configs/experiment_grid.yaml`'s "Scenario design" section (4
-`injection_style` × 6 independently-constructed `scenario_id`s each) — that
+`poison_form` × 6 independently-constructed `scenario_id`s each) — that
 scenario count is the sampling unit for the main experimental factorial;
 this ≥200 figure is about how many labeled examples the κ validation needs
 to see, which can and should draw from multiple generation runs per

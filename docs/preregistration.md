@@ -3,7 +3,7 @@
 **Status: skeleton draft, NOT the committed pre-registration.** Updated
 2026-08-11 (third revision, same day) to match the finalized scenario
 design in `configs/experiment_grid.yaml`: 24 `scenario_id`s (4
-`injection_style` × 6 independent scenarios each) as the real
+`poison_form` × 6 independent scenarios each) as the real
 sampling/bootstrap unit, `prompt_style` demoted to a balanced per-scenario
 attribute, and oracle authoring resolved to programmatic generation from a
 human-approved scenario spec. `depth`/`attribution_threshold` remain
@@ -46,7 +46,7 @@ See `configs/experiment_grid.yaml` for the authoritative, finalized
 generation/analysis split.
 
 - **Generation factors** (each combination produces one real trace —
-  expensive): `scenario_id` (24 values: 4 `injection_style` × 6
+  expensive): `scenario_id` (24 values: 4 `poison_form` × 6
   independently-constructed scenarios each — the real sampling unit, see
   §4/§5), `top_k` {1,3,5,10}, `write_fanout` {1,2,3}, `derivation_transform`
   (4 values, matching MemLineage §5.3's summarize/paraphrase/refine/continue
@@ -98,7 +98,7 @@ inspection of a sample of generation traces).
 
 ## 4. Sample sizes
 
-**Scenario count is now RESOLVED: 24 `scenario_id`s (4 `injection_style` ×
+**Scenario count is now RESOLVED: 24 `scenario_id`s (4 `poison_form` ×
 6 independently-constructed scenarios each)** — see
 `configs/experiment_grid.yaml`'s "Scenario design" section. This closes
 the pseudo-replication risk: seeds now measure within-scenario model/run
@@ -125,7 +125,7 @@ instances of a style is what the 6-scenario replication is for.
 - 95% confidence intervals on every reported number.
 - Wilcoxon signed-rank test for paired comparisons.
 - **Bootstrap resampling unit is `scenario_id`, stratified by
-  `injection_style`, not raw factorial cells or trace rows** — seeds
+  `poison_form`, not raw factorial cells or trace rows** — seeds
   within one scenario are nested repeated measurements, not independent
   samples; resampling 3,456 trace rows as though independent would be
   pseudo-replication.
@@ -140,7 +140,7 @@ instances of a style is what the 6-scenario replication is for.
   reports a frontier; H3 holds derivation_transform×depth explicit at
   `attribution_threshold=null`; H4 applies containment_policy post-hoc to
   every reconstructed graph. All four marginalize equally over scenario_id
-  (stratified by injection_style) and whichever other generation factors
+  (stratified by poison_form) and whichever other generation factors
   aren't held explicit.
 - **depth=0 special case:** at depth 0 the compromised root may have zero
   downstream descendants, giving \|B_true\|=0 and making R_BR/inflation

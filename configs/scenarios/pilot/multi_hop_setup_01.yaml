@@ -1,4 +1,4 @@
-# Pilot scenario 4/4. injection_style: multi_hop_setup.
+# Pilot scenario 4/4. poison_form: multi_hop_setup. signal_strength: weak.
 # Status: drafted, NOT yet human-approved -- see configs/scenarios/pilot/README.md.
 #
 # Neither P1 nor B1 is individually alarming: P1 reads as a mundane
@@ -9,7 +9,11 @@
 # source fact alone, which is also why this style is the sharpest test of
 # whether execution provenance (which tracks the combination) beats
 # surface/marker matching (neither source sentence contains the composed
-# claim verbatim) -- directly relevant to H3.
+# claim verbatim) -- directly relevant to H3. Classified weak-signal (no
+# imperative/urgency markers anywhere; the composed claim doesn't even
+# exist as a literal sentence in either source) per
+# configs/experiment_grid.yaml's strong/weak-signal stratification note --
+# arguably the weakest-signal of the 4 pilot scenarios by construction.
 #
 # Expected oracle output at depth_1 (for human review, not yet machine-derived):
 #   P1 -> child_1  STRUCTURAL_PARENT
@@ -17,7 +21,8 @@
 #   B2 -> child_2  STRUCTURAL_PARENT
 
 scenario_id: multi_hop_setup_01
-injection_style: multi_hop_setup
+poison_form: multi_hop_setup
+signal_strength: weak
 prompt_style: structured  # scenarios 5-6 of each style -> structured, per the balanced
                            # assignment; using it here for pilot variety since the pilot
                            # only draws 1 scenario per style, not all prompt_style values
