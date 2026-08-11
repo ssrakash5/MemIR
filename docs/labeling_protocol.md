@@ -1,17 +1,40 @@
 # Ground-Truth Labeling Protocol
 
-**Status: skeleton draft.** Structure, definitions, and validation plan are
-filled in per week1_execution_plan.md §3. The 10 worked examples are
-intentionally left as a TODO — per your direction, they should be built from
-real output of `spike/05_e2e.py` once that spike exists, not invented text,
-so the protocol is validated against what the actual system produces rather
-than a hypothetical. **This document is not done until that section is
-filled in** — the plan's own test is "complete enough that a stranger could
-execute it," and worked examples are load-bearing for that.
+**Status: skeleton draft, revised 2026-08-11 to add oracle structural
+ground truth (mandatory, not optional) alongside the original content
+labels.** After the positioning correction in `docs/positioning.md`, the
+paper's primary dependent variables are blast-radius precision/recall
+(P_BR/R_BR, defined against sets B_true/B_flagged of downstream *objects*),
+not the original CARRIES-set precision formula. **CARRIES/REFERENCES/CLEAN
+remain content-level labels only — they cannot define blast-radius ground
+truth on their own.** See the new "Oracle structural ground truth" section
+below for what actually defines B_true. The 10 worked examples are still a
+TODO beyond #1 — per your direction, built from real spike/harness output,
+not invented text.
 
 ---
 
-## Three-way label
+## Two independent label layers — do not conflate them
+
+1. **Content-level labels (below, unchanged in definition):** does a
+   derived memory *assert* the injected falsehood? This is what the
+   automated labeler (NLI + LLM judge + marker-token check) produces.
+2. **Structural/oracle labels (new section below):** is a memory/object
+   *actually causally downstream* of the compromised root, according to
+   the benchmark's own construction (which memories were designed to be
+   true parents vs. co-retrieved distractors)? This is what defines
+   B_true for the blast-radius metrics, independent of whether the
+   resulting text still asserts the false claim.
+
+The interesting empirical cases live at the intersection: a
+`TRUE_DESCENDANT` node can independently be `CARRIES`, `REFERENCES`, or
+`CLEAN`. The `TRUE_DESCENDANT + CLEAN` combination is the actual
+operationalization of "laundering" for H3 — structurally descended from
+the compromise, but with no surviving surface trace — which is a more
+precise definition than the original "CARRIES with no marker tokens"
+framing (that framing conflated the two layers).
+
+## Content-level three-way label
 
 | Label | Definition |
 |---|---|
@@ -19,11 +42,8 @@ execute it," and worked examples are load-bearing for that.
 | `REFERENCES` | Mentions the topic but does not assert the false claim |
 | `CLEAN` | No trace of the injected content |
 
-The CARRIES/REFERENCES boundary is the entire precision measurement (§2 of
-the plan: precision @ depth d = \|CARRIES ∩ flagged\| / \|flagged\|). Getting
-this boundary fuzzy anywhere in the pipeline directly corrupts the paper's
-main dependent variable. Two judgment calls that will come up constantly and
-need to be pinned down with worked examples, not left implicit:
+Two judgment calls that will come up constantly and need to be pinned down
+with worked examples, not left implicit:
 
 1. **Partial assertion.** A derived memory that hedges ("some sources claim
    X, though this is disputed") — does attributing the claim to a source,
@@ -39,6 +59,67 @@ need to be pinned down with worked examples, not left implicit:
    plan doesn't define "derivative" precisely; the worked examples are where
    this gets operationalized.
 
+## Oracle structural ground truth (new, mandatory)
+
+Without this, blast-radius over-tainting is unmeasurable: if every
+retrieved memory always genuinely contributes to every write, conservative
+provenance (retrieve-all → parent-of-all) has perfect precision *by
+construction*, and the phenomenon this paper studies can't show up in the
+data. See the `distractor_requirement` note in
+`configs/experiment_grid.yaml` — every generation run's `top_k` retrieval
+must be constructed to mix true parents with co-retrieved distractors.
+
+**Edge-level oracle label** (assigned at corpus-construction time, by the
+benchmark author — this is a property of how the synthetic scenario was
+built, not something inferred after the fact):
+
+| Label | Meaning |
+|---|---|
+| `STRUCTURAL_PARENT` | This parent's information actually participates in producing this child, per benchmark construction |
+| `CO_RETRIEVED` | Present in the model's context when the child was written, but benchmark construction says it's unrelated to this child |
+
+**Node-level oracle label** (derived from edge-level labels plus which
+node is the compromised root):
+
+| Label | Meaning |
+|---|---|
+| `COMPROMISED_ROOT` | The known-compromised memory the incident starts from |
+| `TRUE_DESCENDANT` | Reachable from the root via `STRUCTURAL_PARENT` edges only |
+| `COEXPOSED` | In context with a true descendant's derivation but not itself a `STRUCTURAL_PARENT` descendant — i.e., a distractor that happened to be retrieved alongside real exposure |
+| `UNRELATED` | Not reachable from the root at all |
+
+Example (mirrors the worked-example format below): root M1 is poisoned;
+retrieval R1 returns M1 plus two unrelated memories M2, M3; the agent
+writes M4. If benchmark construction says only M1 actually informed M4:
+
+```
+oracle edges:   M1 -> M4  STRUCTURAL_PARENT
+                M2 -> M4  CO_RETRIEVED
+                M3 -> M4  CO_RETRIEVED
+oracle nodes:   M1 COMPROMISED_ROOT, M4 TRUE_DESCENDANT, M2/M3 UNRELATED (or COEXPOSED if they feed a different true descendant elsewhere in the graph)
+```
+
+Conservative (Coarse) provenance would record all three inbound edges as
+parents of M4 — that's exactly the false-positive source B_flagged needs to
+be checked against B_true (the set of `TRUE_DESCENDANT` nodes) to measure.
+
+**Metric split this enables** (see `configs/experiment_grid.yaml`
+`dependent_variables`): blast-radius precision/recall (P_BR/R_BR, over node
+sets B_true/B_flagged) answers "did we reconstruct the right incident set,"
+while attribution edge quality (P_E/R_E, over the `STRUCTURAL_PARENT` vs.
+`CO_RETRIEVED` edge labels) answers "did we infer the right dependency
+edges" — related but distinct measurements, not to be collapsed into one
+number.
+
+**Open implementation question:** who assigns oracle labels for the
+synthetic corpus — hand-authored per scenario (most reliable, most labor)
+or derived programmatically from how the synthetic documents were
+constructed (e.g., a scenario-generation script that knows which sentences
+it planted as true parents vs. filler)? Given the ≥200-instance target
+scale below, programmatic generation with hand-spot-checking is probably
+required — needs a decision alongside the corpus-construction script,
+not left implicit.
+
 ## Automated labeler (three signals, combined)
 
 1. **NLI entailment** — DeBERTa-v3-MNLI. Two directional checks per derived
@@ -52,12 +133,18 @@ need to be pinned down with worked examples, not left implicit:
    created) and is version-controlled in the repo, not embedded as a prompt
    string in code, so it can be diffed and cited in the paper verbatim.
 3. **Marker-token check** — does the injection's distinctive surface form
-   survive in the derived memory? This is the operational definition of
-   laundering: `CARRIES == true AND markers absent`. Marker tokens need to
-   be chosen per injection instance at generation time (e.g., a distinctive
-   proper noun, number, or phrase planted in the injected content) and
-   logged alongside the injection so this check is a simple substring/fuzzy
-   match, not another judgment call.
+   survive in the derived memory? Marker tokens need to be chosen per
+   injection instance at generation time (e.g., a distinctive proper noun,
+   number, or phrase planted in the injected content) and logged alongside
+   the injection so this check is a simple substring/fuzzy match, not
+   another judgment call. **Revised laundering definition (2026-08-11):**
+   this signal alone no longer defines laundering. Per the oracle section
+   above, laundering is properly `TRUE_DESCENDANT` (oracle-confirmed
+   structural descent from the compromised root) `+ CLEAN or REFERENCES`
+   content label with markers absent — i.e., the object really is
+   downstream of the compromise, but neither the content nor the surface
+   form shows it. The old `CARRIES == true AND markers absent` definition
+   conflated the content-label and oracle-label layers.
 
 **Combination rule: not yet decided.** Options: majority vote across the
 three signals, NLI+marker as a fast filter with LLM judge only on
@@ -137,17 +224,20 @@ actual Thursday deliverable test — "a stranger could execute it" — and
   be located in") rather than asserting it. Per the working default in this
   doc's "Partial assertion" note above, attribution/flagging without
   endorsement is REFERENCES, not CARRIES.
-- **Why this example matters:** it is NOT a laundering case, and that's the
-  useful finding — `gpt-4o-mini` at temperature 0, given a plain
-  "summarize this" prompt, chose to correct the false claim rather than
-  launder it. That's a real, unscripted data point suggesting laundering
-  may be sensitive to summarization-prompt style (the plan's
-  `summarization_prompt` axis: terse/verbose/structured) or model choice —
-  worth deliberately trying a "terse" prompt style next, since brevity
-  pressure may be what induces laundering (dropping the "incorrectly noted"
-  hedge to save words) rather than model capability alone. This is exactly
-  the kind of thing the pilot cells in `configs/experiment_grid.yaml` should
-  probe before committing to the full grid.
+- **Why this example matters:** this trace's retrieved parents (ids 1, 2, 3)
+  were all genuinely relevant to the query — no distractors — so it can't
+  yet be scored against oracle blast-radius ground truth (see the new
+  oracle section above; this example predates that requirement). It's
+  still a useful content-label data point: `gpt-4o-mini` at temperature 0,
+  given a plain "summarize this" prompt, chose to correct the false claim
+  rather than launder it. Worth deliberately trying a "terse" `prompt_style`
+  next (renamed from `summarization_prompt` in
+  `configs/experiment_grid.yaml`), since brevity pressure may be what
+  induces laundering (dropping the "incorrectly noted" hedge to save
+  words) rather than model capability alone — and worth constructing the
+  *next* worked examples with explicit distractors mixed into the corpus,
+  per the `distractor_requirement` in `configs/experiment_grid.yaml`, so
+  they can carry oracle labels this one can't.
 
 ## Corpus/protocol open questions to resolve before Thursday close
 
@@ -157,3 +247,13 @@ actual Thursday deliverable test — "a stranger could execute it" — and
    labeling stage.
 3. Real-document validation slice size and source (LongMemEval vs. LoCoMo) —
    deferred until the synthetic pipeline is proven.
+4. **New:** who/what assigns oracle `STRUCTURAL_PARENT`/`CO_RETRIEVED` and
+   node-level labels — hand-authored vs. programmatic from the
+   corpus-generation script (see the oracle section above) — undecided.
+5. **New:** the κ hand-validation (100–150 memories) should probably be
+   checked against both label layers, not just the content-level one —
+   i.e., does your blind hand-labeling of *content* labels agree with the
+   automated labeler, AND separately, does the corpus's claimed oracle
+   structure hold up if you inspect a sample of the generation traces by
+   hand? These may need two separate validation passes with two separate
+   κ values. Not yet decided whether to keep them separate or combine.
