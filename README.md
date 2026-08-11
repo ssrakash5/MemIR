@@ -1,14 +1,18 @@
 # MemoryIR
 
-Provenance-based exposure tracing for poisoned agent memory. Research artifact
-for IEEE SaTML 2027 (submission deadline 2026-09-29).
+Post-incident blast-radius reconstruction for poisoned agent memory. Research
+artifact for IEEE SaTML 2027 (submission deadline 2026-09-29).
 
 ## Research question
 
-How does the precision of provenance-based exposure flagging degrade as a
-function of derivation depth and retrieval fan-out, and what precision/recall
-frontier is achievable when conservative propagation is relaxed with
-similarity and rank thresholds?
+Once a memory or source is known to be compromised, how accurately can
+execution provenance reconstruct the downstream blast radius in a branching
+agent-memory graph, and what does containment cost, as a function of
+retrieval fan-out, derivation depth, and attribution policy?
+
+(Revised 2026-08-11 — see `docs/positioning.md` for why the original
+precision-of-exposure-flagging framing failed the Tuesday positioning gate
+and how this question was arrived at.)
 
 ## Status
 
