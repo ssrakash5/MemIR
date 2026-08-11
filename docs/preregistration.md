@@ -8,9 +8,11 @@ sampling/bootstrap unit, `prompt_style` demoted to a balanced per-scenario
 attribute, and oracle authoring resolved to programmatic generation from a
 human-approved scenario spec. `depth`/`attribution_threshold` remain
 analysis-time factors, now validated by `spike/06_prefix_property.py`
-(GREEN). Still not ready to gate data generation: κ validation hasn't run,
-the 24 actual scenario specs don't exist yet (schema only), and sample
-sizes below still need the real numbers plugged in once the pilot runs.
+(GREEN). The pilot's 4 scenario specs (one per `poison_form`) are now
+**HUMAN-APPROVED** (`configs/scenarios/pilot/`, approved 2026-08-11) — the
+remaining 20 (5 more per `poison_form`) still don't exist. Still not ready
+to gate data generation: κ validation hasn't run, and sample sizes below
+still need the real numbers plugged in once the pilot runs.
 **Do not generate experiment data against this version.**
 
 ---
@@ -110,9 +112,10 @@ instances of a style is what the 6-scenario replication is for.
   retrieval within each scenario's `distractor_pool` — this directly sets
   how hard the precision problem is, so it needs to be a deliberate
   choice per scenario, not incidental).
-- The actual 24 scenario specifications don't exist yet — only the schema
-  does. Writing them (or at minimum the pilot's 4) is the next concrete
-  task before any real generation run.
+- ~~The pilot's 4 scenario specifications don't exist yet~~ — **done and
+  HUMAN-APPROVED 2026-08-11** (`configs/scenarios/pilot/`). The remaining
+  20 (5 more per `poison_form`) still need to be written before the full
+  24-scenario generation run.
 - Target scale from `docs/labeling_protocol.md`: ≥200 injection instances
   across ≥4 styles, chains to depth ≥3 — a floor for the *labeling
   validation* corpus specifically, distinct from and smaller than the
@@ -193,15 +196,18 @@ first 2026-08-11 revision):
 4. ~~MemSecBench full read~~ — done 2026-08-11; positioning survives
    unchanged (see `docs/positioning.md`).
 5. ~~`scenario_id`/pseudo-replication question, oracle-authoring method~~ —
-   RESOLVED 2026-08-11 (this revision): 24 scenarios, programmatic oracle
-   generation from human-approved specs.
-6. **Still open:** the 24 scenario specifications themselves don't exist
-   yet (schema only) — writing them is the next concrete task.
+   RESOLVED 2026-08-11: 24 scenarios, programmatic oracle generation from
+   human-approved specs.
+6. ~~The 24 scenario specifications don't exist yet~~ — **pilot's 4 done
+   and HUMAN-APPROVED 2026-08-11** (`configs/scenarios/pilot/`), including
+   a full ground-truth review pass that corrected `true_parents` to the
+   minimal causally-necessary set in 3/4 (see that directory's README).
+   **Still open:** the remaining 20 (5 more per `poison_form`).
 7. `docs/labeling_protocol.md` needs: κ validation run and passed (still
    undecided whether as one pass or two, against the content vs. oracle
    label layers), remaining 9 worked examples.
-8. MPBench, AgentPoison, MINJA still need full reads (see
-   `docs/prior_art.md`) — low priority, none currently load-bearing for a
-   specific claim.
+8. ~~MPBench, AgentPoison, MINJA full reads~~ — done 2026-08-12; the
+   entire `week1_execution_plan.md` §1 literature gate is closed (see
+   `docs/prior_art.md`).
 9. Once 6–7 are done, re-commit with a note marking it as the actual
    pre-registration timestamp; no data generation before that commit.
