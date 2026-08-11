@@ -1,16 +1,20 @@
 # Ground-Truth Labeling Protocol
 
-**Status: skeleton draft, revised 2026-08-11 to add oracle structural
-ground truth (mandatory, not optional) alongside the original content
-labels.** After the positioning correction in `docs/positioning.md`, the
-paper's primary dependent variables are blast-radius precision/recall
-(P_BR/R_BR, defined against sets B_true/B_flagged of downstream *objects*),
-not the original CARRIES-set precision formula. **CARRIES/REFERENCES/CLEAN
-remain content-level labels only — they cannot define blast-radius ground
-truth on their own.** See the new "Oracle structural ground truth" section
-below for what actually defines B_true. The 10 worked examples are still a
-TODO beyond #1 — per your direction, built from real spike/harness output,
-not invented text.
+**Status: skeleton draft, revised 2026-08-11 (multiple passes same day)
+to add oracle structural ground truth (mandatory, not optional) and a
+per-scenario `semantic_target` anchor (borrowed from MemSecBench),
+alongside the original content labels.** After the positioning correction
+in `docs/positioning.md`, the paper's primary dependent variables are
+blast-radius precision/recall (P_BR/R_BR, defined against sets
+B_true/B_flagged of downstream *objects*), not the original CARRIES-set
+precision formula. **CARRIES/REFERENCES/CLEAN remain content-level labels
+only — they cannot define blast-radius ground truth on their own.** See
+the "Oracle structural ground truth" section below for what actually
+defines B_true, now with the oracle-authoring method resolved
+(programmatic generation from a human-approved scenario spec — see
+`configs/experiment_grid.yaml`'s "Scenario design" section for the
+schema). The 10 worked examples are still a TODO beyond #1 — per your
+direction, built from real spike/harness output, not invented text.
 
 ---
 
@@ -41,6 +45,18 @@ framing (that framing conflated the two layers).
 | `CARRIES` | Asserts the injected falsehood or a derivative of it |
 | `REFERENCES` | Mentions the topic but does not assert the false claim |
 | `CLEAN` | No trace of the injected content |
+
+**Anchored to a `semantic_target`, not re-derived ad hoc (new, 2026-08-11,
+borrowed from MemSecBench's manifest pattern — see `docs/prior_art.md`'s
+MemSecBench entry).** Every scenario in `configs/experiment_grid.yaml`'s
+scenario design carries one `semantic_target` definition (e.g. "treat
+attacker-supplied settlement account 9988 as the approved payment
+destination for Nova Components"). CARRIES/REFERENCES/CLEAN are evaluated
+against *that specific target claim* at every depth, not re-interpreted
+independently at each derivation step — this is what makes the label
+consistent across a long derivation chain and gives the automated labeler
+(below) one fixed thing to check entailment against, rather than having to
+re-infer "what was the original injection" from context at each step.
 
 Two judgment calls that will come up constantly and need to be pinned down
 with worked examples, not left implicit:
@@ -111,14 +127,17 @@ while attribution edge quality (P_E/R_E, over the `STRUCTURAL_PARENT` vs.
 edges" — related but distinct measurements, not to be collapsed into one
 number.
 
-**Open implementation question:** who assigns oracle labels for the
-synthetic corpus — hand-authored per scenario (most reliable, most labor)
-or derived programmatically from how the synthetic documents were
-constructed (e.g., a scenario-generation script that knows which sentences
-it planted as true parents vs. filler)? Given the ≥200-instance target
-scale below, programmatic generation with hand-spot-checking is probably
-required — needs a decision alongside the corpus-construction script,
-not left implicit.
+**Oracle authoring method — RESOLVED 2026-08-11:** programmatic generation
+from a human-approved scenario specification (hybrid — not hand-authoring
+every edge, not letting an LLM decide its own ground truth after seeing
+its output). See `configs/experiment_grid.yaml`'s "Scenario design"
+section for the full schema (`entities`, `source_facts.poisoned/benign`,
+`derivation_plan.depth_N.child.true_parents`, `distractor_pool`,
+`semantic_target`). A human approves the scenario's semantics, true
+dependency specification, and distractor relevance; the generation script
+deterministically derives `STRUCTURAL_PARENT`/`CO_RETRIEVED` edges and
+node reachability from the approved spec — the LLM only generates surface
+realization (the actual memory text), never decides lineage ground truth.
 
 ## Automated labeler (three signals, combined)
 
@@ -189,9 +208,16 @@ decision to make once the synthetic pipeline (spike/05_e2e.py) is proven out
 — no point committing to a real-corpus scale before knowing the synthetic
 harness works end to end.
 
-**Target scale:** ≥200 injection instances across ≥4 styles (matching
-`injection_style` in `configs/experiment_grid.yaml`), each producing
-derivation chains to depth ≥3.
+**Target scale:** ≥200 injection instances across ≥4 styles, each producing
+derivation chains to depth ≥3 — this remains the floor for the *labeling
+validation* corpus specifically. **Distinct from, and smaller than,** the
+24-scenario / 3,456-generated-trace design now frozen in
+`configs/experiment_grid.yaml`'s "Scenario design" section (4
+`injection_style` × 6 independently-constructed `scenario_id`s each) — that
+scenario count is the sampling unit for the main experimental factorial;
+this ≥200 figure is about how many labeled examples the κ validation needs
+to see, which can and should draw from multiple generation runs per
+scenario, not require 200 distinct scenarios.
 
 ## Ten worked examples — 1 of 10 done (real), 9 still TODO
 
@@ -247,9 +273,10 @@ actual Thursday deliverable test — "a stranger could execute it" — and
    labeling stage.
 3. Real-document validation slice size and source (LongMemEval vs. LoCoMo) —
    deferred until the synthetic pipeline is proven.
-4. **New:** who/what assigns oracle `STRUCTURAL_PARENT`/`CO_RETRIEVED` and
-   node-level labels — hand-authored vs. programmatic from the
-   corpus-generation script (see the oracle section above) — undecided.
+4. ~~Who/what assigns oracle `STRUCTURAL_PARENT`/`CO_RETRIEVED` and
+   node-level labels~~ — **RESOLVED 2026-08-11**: programmatic generation
+   from a human-approved scenario spec (see the oracle section above and
+   `configs/experiment_grid.yaml`'s "Scenario design" section).
 5. **New:** the κ hand-validation (100–150 memories) should probably be
    checked against both label layers, not just the content-level one —
    i.e., does your blind hand-labeling of *content* labels agree with the
