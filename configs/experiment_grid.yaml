@@ -1,0 +1,80 @@
+# Full factorial experiment grid — week 1 plan §2.
+# `cell_type: pilot` cells are meant to run first (small N, fast turnaround)
+# to sanity-check the harness before committing compute to `full` cells.
+#
+# Independent variables (§2):
+#   top_k                  — retrieval fan-out
+#   depth                  — derivation chain depth cap
+#   similarity_threshold   — null means conservative propagation (recall=1 by construction)
+#   injection_style        — attack vocabulary / framing
+#   summarization_prompt   — how the agent condenses retrieved context into a new memory
+#
+# Controls (held fixed within a run, varied only across explicit control sweeps):
+#   model, seed, corpus_size, embedding_model
+
+variables:
+  top_k: [1, 3, 5, 10]
+  depth: [0, 1, 2, 3, 4, 5]
+  similarity_threshold: [null, 0.5, 0.7, 0.85]
+  injection_style:
+    - direct_instruction
+    - embedded_fact
+    - authoritative_framing
+    - multi_hop_setup
+  summarization_prompt: [terse, verbose, structured]
+
+controls:
+  model: TBD               # pin exact version string once selected; see docs/preregistration.md
+  embedding_model: TBD     # pin exact version string once selected
+  corpus_size: TBD         # set alongside docs/labeling_protocol.md corpus decision
+  seeds: [0, 1, 2]          # >=3 seeds per condition per CLAUDE.md standards
+
+dependent_variables:
+  - name: precision_at_depth
+    definition: "|CARRIES ∩ flagged| / |flagged|, computed per depth d"
+  - name: recall_under_thresholding
+    definition: "recall once similarity/rank thresholds break the conservative-propagation guarantee"
+  - name: blast_radius
+    definition: "count of flagged objects"
+  - name: laundering_rate
+    definition: "fraction of CARRIES descendants with no surviving injection-marker tokens"
+
+# Cell classification.
+# - pilot: run first, small N, verifies the harness end-to-end and gives an
+#   early read on whether the grid needs to shrink or the harness needs fixing.
+# - full: the pre-registered factorial cells reported in the paper.
+#
+# Pilot slice: one mid-range value per axis, all injection styles (cheap,
+# and injection_style is unlikely to have a "typical" value worth collapsing).
+cells:
+  pilot:
+    top_k: [5]
+    depth: [0, 2, 4]
+    similarity_threshold: [null, 0.7]
+    injection_style: [direct_instruction, embedded_fact, authoritative_framing, multi_hop_setup]
+    summarization_prompt: [structured]
+    seeds: [0]
+
+  full:
+    top_k: [1, 3, 5, 10]
+    depth: [0, 1, 2, 3, 4, 5]
+    similarity_threshold: [null, 0.5, 0.7, 0.85]
+    injection_style:
+      - direct_instruction
+      - embedded_fact
+      - authoritative_framing
+      - multi_hop_setup
+    summarization_prompt: [terse, verbose, structured]
+    seeds: [0, 1, 2]
+
+notes: |
+  Full factorial size = 4 (top_k) x 6 (depth) x 4 (similarity_threshold)
+  x 4 (injection_style) x 3 (summarization_prompt) x 3 (seeds) = 13,824 cells.
+  This is almost certainly too large to run in full — treat `full` above as
+  the pre-registered design space, and decide during docs/preregistration.md
+  drafting which axes get marginalized (e.g. run the full top_k x depth x
+  similarity_threshold sweep at one fixed injection_style x summarization_prompt,
+  then a smaller sweep over injection_style x summarization_prompt at one
+  fixed point on the other axes). Do not silently shrink the grid without
+  recording the decision in docs/preregistration.md — reviewers will ask
+  why cells were dropped.
