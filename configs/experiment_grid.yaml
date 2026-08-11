@@ -125,9 +125,69 @@ generation_controls:
 # and node reachability (TRUE_DESCENDANT/COEXPOSED/UNRELATED) from the
 # approved spec -- deterministic, auditable, reproducible.
 #
-# NOT YET DONE: the actual 24 scenario specs don't exist yet -- this is
-# the schema, not the corpus. Writing the 24 (or at least the pilot's 4)
-# is the next concrete task before any real generation run.
+# NOT YET DONE: the full 24 scenario specs don't exist yet. The pilot's 4
+# (one per injection_style, scenario "_01" of each style's eventual 6) are
+# drafted under configs/scenarios/pilot/ -- see that directory's README.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Distractor rule + shared-retrieval-per-run model (RESOLVED 2026-08-11)
+# ---------------------------------------------------------------------------
+# Closes the "how many distractors per retrieval" question without adding
+# a new factorial axis. Two rules, both deterministic functions of factors
+# that already vary, not new independent variables:
+#
+# 1. TRUE-PARENTS-RANK-FIRST: at any given depth, a fixed, scenario-defined
+#    count of true parents exists (2 at a scenario's origin/depth_1 -- one
+#    poisoned + one co-occurring benign fact per the schema above; 1 at
+#    every subsequent chain-continuation depth -- see rule 3). Retrieval
+#    always ranks true parents first (this is realistic, not a cheat: true
+#    parents are by construction topically relevant to the query, so a real
+#    retriever ranks them highest). Distractors fill whatever top_k slots
+#    remain:
+#         distractor_count = max(0, top_k - true_parent_count)
+#    This makes distractor count a DETERMINISTIC FUNCTION of top_k, so it
+#    varies automatically across the existing top_k axis instead of being
+#    a new one. At top_k=1 with true_parent_count=2 (depth_1), only 1 true
+#    parent is retrieved and 0 distractors appear -- a legitimate edge case
+#    (tests that the system reports high precision when the retrieved set
+#    is trivially clean), not a bug to special-case around.
+#    Each scenario's distractor_pool must have >= 9 entries (covers
+#    top_k=10 with true_parent_count as low as 1). Distractors are drawn
+#    from the pool in fixed listed order (pool[0:n]) -- no randomness, so
+#    a given (scenario, depth, top_k) always yields the same retrieved set.
+#
+# 2. SHARED RETRIEVAL PER RUN (this is what makes write_fanout actually
+#    test over-tainting, not just relabel repeated single-child runs): one
+#    retrieval event per run returns the top_k set (true parents +
+#    distractors per rule 1); ALL write_fanout children in that run are
+#    written from that SAME shared context. Each child's oracle
+#    STRUCTURAL_PARENT edges are whichever subset of the retrieved true
+#    parents the scenario spec says that child actually derives from
+#    (target_semantics) -- a child can legitimately derive from none of
+#    them (e.g. a sibling write that only touches distractor/filler
+#    content). Everything else retrieved into that run's context is
+#    CO_RETRIEVED relative to that child. This is precisely the mechanism
+#    that produces COEXPOSED nodes: naive coarse provenance links every
+#    retrieved item to every child written in the same run, so a
+#    poison-adjacent distractor can make an otherwise-unrelated sibling
+#    write look falsely exposed -- the exact false-positive source H1/H2
+#    measure.
+#
+# 3. DEPTH-CONTINUATION RULE (keeps 4 pilot scenarios tractable instead of
+#    requiring 5 depths x 4 scenarios of bespoke hand-authored content):
+#    depth_1 is the unique, hand-authored injection point (the interesting
+#    content -- entities, semantic_target, poisoned/benign source facts).
+#    At every depth d>1, the run's true parent is simply depth (d-1)'s
+#    "child_1" (the branch that continues the true-descendant lineage);
+#    rule 1's distractor-fill and rule 2's shared-context-with-siblings
+#    still apply identically. child_2 (and child_3, if write_fanout=3) at
+#    depth d>1 are fresh distractor-only sibling writes, same as depth_1's
+#    child_2 -- they do NOT continue their own lineage forward (no
+#    "grandchild" branches off a sibling), keeping the graph's branching
+#    structure simple and auditable for a pilot. A scenario spec therefore
+#    only needs to define depth_1 explicitly; depths 2..max_depth follow
+#    this rule mechanically.
 # ---------------------------------------------------------------------------
 
 analysis_factors:
