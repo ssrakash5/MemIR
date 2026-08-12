@@ -90,8 +90,18 @@ def main() -> None:
     report_lines = [
         "# Kappa validation report (pipeline vs. human, NOT a substitute for human<->human)",
         "",
+        "**Methodology (2026-08-12 revision):** final_label = primary LLM "
+        "judge's label, unconditionally. Adjudication is DIAGNOSTIC ONLY --",
+        "still run and logged whenever the disagreement condition flags a "
+        "sample, but never overrides the primary judge. See "
+        "src/memoryir/labeler.py's module docstring and "
+        "results/kappa_sample/kappa_report_v1_with_adjudication_SUPERSEDED.md "
+        "for the original (adjudicator-can-override) methodology this "
+        "supersedes, and why it was changed.",
+        "",
         f"N = {len(human_labels)}",
-        f"Adjudication triggered on {n_adjudicated}/{len(human_labels)} samples "
+        f"Flagged for diagnostic adjudication (did not override): "
+        f"{n_adjudicated}/{len(human_labels)} samples "
         f"({100*n_adjudicated/len(human_labels):.1f}%)",
         "",
         f"**Cohen's kappa: {kappa:.4f}**",

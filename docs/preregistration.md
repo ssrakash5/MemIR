@@ -1,37 +1,43 @@
 # Pre-registration
 
-**Status: skeleton draft, NOT the committed pre-registration.** Updated
-2026-08-11 (third revision, same day) to match the finalized scenario
-design in `configs/experiment_grid.yaml`: 24 `scenario_id`s (4
-`poison_form` × 6 independent scenarios each) as the real
-sampling/bootstrap unit, `prompt_style` demoted to a balanced per-scenario
-attribute, and oracle authoring resolved to programmatic generation from a
-human-approved scenario spec. `depth`/`attribution_threshold` remain
-analysis-time factors, now validated by `spike/06_prefix_property.py`
-(GREEN). **All 24 scenario specs are now HUMAN-APPROVED** (4 pilot,
-approved 2026-08-11; 20 more, drafted and reviewed 2026-08-12 — 12
-approved as drafted, 8 revised for semantic-target wording and
-distractor/clean-sibling contamination, zero `true_parents` errors found
-— see `configs/scenarios/README.md` for full detail). Also RESOLVED
-2026-08-12: the automated labeler pipeline (LLM-primary + NLI
-verification + adjudication, marker tokens excluded from the label
-decision — see `docs/labeling_protocol.md`). Also done 2026-08-12: a v1
-`eval/` generation harness (scoped to labeling validation, not the full
-production sweep — see `CLAUDE.md` and `eval/README.md`), run
-successfully (48 real traces, 480+ derived memories), and 8/10 labeling
-worked examples built from that real output (2 categories genuinely
-searched for and not found — a reportable finding). The two
-scientific-framing questions surfaced by the worked examples (compositional
-CARRIES/REFERENCES rule, `CO_RETRIEVED` redefinition) were resolved the
-same day, freezing the rubric — see `docs/labeling_protocol.md`. **κ
-validation then ran and PASSED (κ=0.8103, 2026-08-12)** — see the closing
-section below for the full status and two documented-but-not-required-fix
-weaknesses (REFERENCES class, adjudication net effect). All three
-original blockers are now closed. Sample sizes below still need real
-numbers plugged in, and this file has not yet been re-committed as the
-timestamped pre-registration — that's a final go/no-go call, not
-automatic just because the blockers cleared.
-**Do not generate experiment data against this version.**
+**STATUS: STAMPED 2026-08-12.** This is the committed pre-registration.
+Per the go/no-go decision recorded in this document's closing section:
+the labeling pipeline was revised once (adjudication made diagnostic-only
+after it was found net-harmful — see `docs/labeling_protocol.md`), κ was
+recomputed against the *same* 120-sample calibration set (legitimate:
+this sample exists specifically to select/freeze the labeling procedure
+before the real experiment, and the reuse is stated transparently here,
+not hidden), and **κ = 0.8699 ≥ 0.6 → stamp, no further methodology
+changes after this point.** The known REFERENCES-class weakness
+(P=0.75, R=0.46, concentrated in `multi_hop_setup` compositional targets)
+is preregistered as a limitation to report alongside aggregate κ, not a
+reason to keep iterating on the rubric or pipeline.
+
+**What is now frozen and must not change without an explicit, recorded
+revision + re-validation:** the scenario corpus (24 `poison_form` ×
+`scenario_id` design, `configs/experiment_grid.yaml`), the hypotheses
+(H1–H4 below), the dependent variables and metric definitions, the
+labeling rubric and pipeline (`docs/labeling_protocol.md`,
+`src/memoryir/labeler.py`), and the falsification conditions. Sample
+sizes for the full run still need real numbers plugged in (§4) — that is
+an open scaling decision, not a rubric/hypothesis change, and does not
+reopen this stamp.
+
+**Prior history (condensed — see git log for full detail):** 2026-08-11,
+generation/analysis split and 24-scenario design finalized. 2026-08-12,
+same day: all 24 scenarios human-approved; MPBench/AgentPoison/MINJA full
+reads closed the literature gate; `eval/` harness (v1, scoped to labeling
+validation) built and run (48 real traces, 480+ derived memories); 8
+labeling worked examples built from that output, 2 prespecified
+categories searched for and genuinely not found (zero organic laundering
+observed — a real finding, see H3); two scientific-framing corrections
+made from that work (compositional CARRIES/REFERENCES rule,
+`CO_RETRIEVED` redefinition), freezing the rubric; κ validation run,
+found adjudication net-harmful, adjudication revised to diagnostic-only,
+κ recomputed and passed with a clear margin; this document stamped.
+
+**Do not generate experiment data before this stamp's commit. Data
+generation is now unblocked as of this commit.**
 
 ---
 
@@ -325,37 +331,36 @@ contamination) for the full distinction. Set notation over blast-radius
     validation" requires an actual human; an AI blind-labeling pass is a
     legitimate supplementary `pipeline ↔ Claude` audit, never blended
     into or substituted for `pipeline ↔ human`.
-14. ~~κ validation~~ — **RUN AND PASSED 2026-08-12.** 120-memory sample
-    drawn (`eval/draw_kappa_sample.py`, stratified 6 per poison_form ×
-    depth), human blind-labeled it, `src/memoryir/labeler.py` (the frozen
-    LLM-primary + NLI + adjudication pipeline) run against the same
-    samples. **Cohen's κ = 0.8103, raw agreement 89.2%** — well above the
-    ≥0.6 hard gate. Full report: `results/kappa_sample/kappa_report.md`;
-    findings discussion: `docs/labeling_protocol.md`'s "κ validation
-    results" section. Two real, quantified weaknesses found and
-    documented (not hidden by the passing headline number): the
-    REFERENCES class is weak (P=0.50, R=0.23), and the adjudication step
-    is net harmful on this sample (fixed 3 wrong primary labels, broke 5
-    correct ones) — both concentrate in `multi_hop_setup` compositional
-    cases. Recommended fixes listed but **not implemented** — this is a
-    documented known limitation to address before the full-corpus run,
-    not a blocker to committing pre-registration (the gate is passed on
-    its own stated terms).
-15. Once this file is reviewed against the κ results above and judged
-    acceptable, re-commit with a note marking it as the actual
-    pre-registration timestamp; no data generation before that commit.
-    Whether the REFERENCES/adjudication weakness needs fixing *before*
-    that commit, or can be tracked as a documented limitation and fixed
-    before the full run, is a judgment call for the co-author, not
-    something resolved unilaterally here.
+14. ~~κ validation~~ — **RUN, REVISED, AND PASSED 2026-08-12.** 120-memory
+    sample drawn (`eval/draw_kappa_sample.py`, stratified 6 per
+    poison_form × depth), human blind-labeled it. **Run 1** (adjudicator
+    could override the primary judge): κ=0.8103, raw agreement 89.2% —
+    passed the gate, but surfaced that adjudication was net harmful (3
+    fixes, 5 regressions out of 22 triggered). **Go/no-go decision:**
+    NO-GO on stamping as-is; GO after making adjudication diagnostic-only
+    (never overrides) and promoting the compositional-target rule to a
+    standalone prompt instruction — rejected three narrower patches as
+    either post-hoc overfitting to the exact observed error or
+    inconsistent treatment across `poison_form`s. **Run 2** (final):
+    recomputed on the *same* 120 samples (no new human labeling — stated
+    transparently, this sample exists to calibrate/freeze the procedure)
+    — **κ=0.8699, raw agreement 92.5%.** Every metric improved. Full
+    reports: `results/kappa_sample/kappa_report.md` (final) and
+    `kappa_report_v1_with_adjudication_SUPERSEDED.md` (superseded, kept
+    for the record). Findings discussion: `docs/labeling_protocol.md`'s
+    κ section.
+15. ~~Re-commit as the timestamped pre-registration~~ — **DONE, this
+    commit.** Per the go/no-go rule stated in advance: primary-only κ
+    (0.8699) is ≥ 0.6, so this document is stamped, effective this
+    commit. The REFERENCES-class weakness (P=0.75, R=0.46) is recorded as
+    a preregistered limitation to report alongside aggregate κ (see the
+    reporting language in `docs/labeling_protocol.md`), not grounds to
+    keep iterating — doing so now would be calibration overfitting on the
+    sample used to freeze the procedure.
 
-**Status: rubric frozen, κ validation PASSED. Ready for a final go/no-go
-review, not yet re-committed as the timestamped pre-registration.**
-Blocker A (harness) — closed. Blocker B (worked examples) — closed (8
-observed + 2 honestly-not-found, rubric frozen). Blocker C (κ
-validation) — closed, κ=0.81 passes the gate, with two documented
-weaknesses (REFERENCES class, adjudication net effect) that are
-recommended-but-not-required fixes before scaling to the full run.
-Everything else in this document can continue in parallel, but per the
-original agreed ordering: none of it clears the scientific gate on its
-own.
+**Status: STAMPED.** All three original blockers closed: Blocker A
+(harness), Blocker B (worked examples, rubric frozen), Blocker C (κ
+validation, revised once for a real cause, passed with margin on the
+final design). Data generation is unblocked as of this commit. Sample
+sizes for the full run (§4) remain an open scaling decision — resolving
+that does not require reopening this stamp.

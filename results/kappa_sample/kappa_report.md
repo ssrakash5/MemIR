@@ -1,17 +1,20 @@
 # Kappa validation report (pipeline vs. human, NOT a substitute for human<->human)
 
-N = 120
-Adjudication triggered on 22/120 samples (18.3%)
+**Methodology (2026-08-12 revision):** final_label = primary LLM judge's label, unconditionally. Adjudication is DIAGNOSTIC ONLY --
+still run and logged whenever the disagreement condition flags a sample, but never overrides the primary judge. See src/memoryir/labeler.py's module docstring and results/kappa_sample/kappa_report_v1_with_adjudication_SUPERSEDED.md for the original (adjudicator-can-override) methodology this supersedes, and why it was changed.
 
-**Cohen's kappa: 0.8103**
-**Raw agreement: 0.8917** (107/120)
+N = 120
+Flagged for diagnostic adjudication (did not override): 25/120 samples (20.8%)
+
+**Cohen's kappa: 0.8699**
+**Raw agreement: 0.9250** (111/120)
 
 ## Confusion matrix (rows=human, columns=pipeline)
 
 | | CARRIES | REFERENCES | CLEAN |
 |---|---|---|---|
-| **CARRIES** | 48 | 3 | 0 |
-| **REFERENCES** | 9 | 3 | 1 |
+| **CARRIES** | 49 | 2 | 0 |
+| **REFERENCES** | 7 | 6 | 0 |
 | **CLEAN** | 0 | 0 | 56 |
 
 ## Per-class precision/recall (human labels as ground truth)
@@ -19,13 +22,13 @@ Adjudication triggered on 22/120 samples (18.3%)
 ```
               precision    recall  f1-score   support
 
-     CARRIES       0.84      0.94      0.89        51
-  REFERENCES       0.50      0.23      0.32        13
-       CLEAN       0.98      1.00      0.99        56
+     CARRIES       0.88      0.96      0.92        51
+  REFERENCES       0.75      0.46      0.57        13
+       CLEAN       1.00      1.00      1.00        56
 
-    accuracy                           0.89       120
-   macro avg       0.77      0.72      0.73       120
-weighted avg       0.87      0.89      0.87       120
+    accuracy                           0.93       120
+   macro avg       0.88      0.81      0.83       120
+weighted avg       0.92      0.93      0.92       120
 
 ```
 
