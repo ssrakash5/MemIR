@@ -28,6 +28,10 @@ SCHEMA_STATEMENTS = [
         embedding VECTOR({embed_dim}),
         derivation_transform TEXT,
         prompt_style TEXT,
+        model TEXT,                      -- which LLM generated this write (added 2026-08-12 for
+                                                 -- the 3-model cross-model extension; NULL on any row
+                                                 -- predating this column means gpt-4o-mini -- see the
+                                                 -- backfill migration statement below).
         content_label TEXT,              -- CARRIES/REFERENCES/CLEAN -- filled in by the labeler, NULL at generation time
         derivation_contract_satisfied BOOLEAN,  -- did this write express its target_semantics, distinct from content_label
                                                  -- (added 2026-08-12; see docs/labeling_protocol.md's compositional-target rule --
@@ -41,6 +45,10 @@ SCHEMA_STATEMENTS = [
     # Migration for tables created before derivation_contract_satisfied
     # existed (CREATE TABLE IF NOT EXISTS doesn't alter an existing table).
     "ALTER TABLE memories ADD COLUMN IF NOT EXISTS derivation_contract_satisfied BOOLEAN",
+    "ALTER TABLE memories ADD COLUMN IF NOT EXISTS model TEXT",
+    # Backfill: every row generated before this column existed was gpt-4o-mini
+    # (the only model used prior to the 2026-08-12 cross-model extension).
+    "UPDATE memories SET model='gpt-4o-mini' WHERE model IS NULL AND branch IN ('child_1','child_2','child_3')",
     "CREATE INDEX IF NOT EXISTS idx_memories_trace ON memories(trace_id)",
     "CREATE INDEX IF NOT EXISTS idx_memories_scenario ON memories(scenario_id)",
     """
@@ -69,6 +77,7 @@ SCHEMA_STATEMENTS = [
         write_fanout INT NOT NULL,
         derivation_transform TEXT NOT NULL,
         seed INT NOT NULL,
+        model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
         status TEXT NOT NULL DEFAULT 'pending'
             CHECK (status IN ('pending', 'running', 'done', 'failed', 'error_exhausted')),
         attempts INT NOT NULL DEFAULT 0,
@@ -78,6 +87,7 @@ SCHEMA_STATEMENTS = [
     )
     """,
     "CREATE INDEX IF NOT EXISTS idx_sweep_runs_status ON sweep_runs(status)",
+    "ALTER TABLE sweep_runs ADD COLUMN IF NOT EXISTS model TEXT NOT NULL DEFAULT 'gpt-4o-mini'",
 ]
 
 
@@ -102,13 +112,14 @@ def insert_memory(
     embedding: list[float],
     derivation_transform: str | None = None,
     prompt_style: str | None = None,
+    model: str | None = None,
 ) -> int:
     row = conn.execute(
         """
         INSERT INTO memories
             (scenario_id, trace_id, depth, branch, local_id, content, embedding,
-             derivation_transform, prompt_style)
-        VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s, %s)
+             derivation_transform, prompt_style, model)
+        VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s, %s, %s)
         RETURNING id
         """,
         (
@@ -121,6 +132,7 @@ def insert_memory(
             embedding,
             derivation_transform,
             prompt_style,
+            model,
         ),
     ).fetchone()
     return row[0]
@@ -135,12 +147,12 @@ def seed_sweep_runs(conn: psycopg.Connection, cells: list[dict]) -> None:
             cur.execute(
                 """
                 INSERT INTO sweep_runs
-                    (trace_id, scenario_id, top_k, write_fanout, derivation_transform, seed)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                    (trace_id, scenario_id, top_k, write_fanout, derivation_transform, seed, model)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (trace_id) DO NOTHING
                 """,
                 (c["trace_id"], c["scenario_id"], c["top_k"], c["write_fanout"],
-                 c["derivation_transform"], c["seed"]),
+                 c["derivation_transform"], c["seed"], c.get("model", "gpt-4o-mini")),
             )
 
 

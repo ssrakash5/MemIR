@@ -107,6 +107,20 @@ conceptual distinction this rests on.
 See `configs/experiment_grid.yaml` for the authoritative, finalized
 generation/analysis split.
 
+- **Cross-model extension (RESOLVED 2026-08-12, post-stamp, explicit
+  user decision):** `model` added as a generation factor (3 values:
+  gpt-4o-mini, gpt-4o, llama-3.3-70b), resolving the previously-`TBD`
+  model field in `configs/experiment_grid.yaml`. gpt-4o-mini's full
+  5,760-trace grid was generated before this factor existed; the other
+  two models each run the identical full grid (not a reduced subset),
+  for **17,280 traces total**. This is a scope addition to the frozen
+  design, recorded here rather than silently folded in — the corpus,
+  hypotheses, rubric, and metric definitions are otherwise unchanged.
+  Model is held explicit (not marginalized) in reporting, the same way
+  `poison_form` is: primary claims are per-model or pooled-with-model-CI
+  as the analysis warrants, and any single-model generalization claim
+  should be read with the same small-n caution as `poison_form` panels
+  if it ever needs to be broken down further than 3 models allow.
 - **Generation factors** (each combination produces one real trace —
   expensive): `scenario_id` (24 values: 4 `poison_form` × 6
   independently-constructed scenarios each — the real sampling unit, see

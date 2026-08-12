@@ -45,7 +45,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 from memoryir import db
 from memoryir.embeddings import Embedder
 from memoryir.harness import TraceConfig, generate_trace
-from memoryir.llm import LLMClient
+from memoryir.llm import make_llm_client
 from memoryir.scenarios import load_all_scenarios
 from memoryir.sweep_grid import enumerate_cells, load_generation_factors, sanity_check
 
@@ -94,24 +94,27 @@ def do_dry_run() -> list[dict]:
 _thread_state = threading.local()
 
 
-def _get_thread_resources():
-    """Lazily creates ONE embedder + DB connection + LLM client per worker
-    thread (keyed on the real OS thread id, so two threads can never share
-    a log subdir), reused across every cell that thread processes -- not
-    re-created per trace, which would be wasteful and pointless since
-    these are stateless/reusable across calls."""
+def _get_thread_resources(model: str):
+    """Lazily creates ONE embedder + DB connection per worker thread
+    (keyed on the real OS thread id), reused across every cell that
+    thread processes. LLM clients are cached per (thread, model) in a
+    dict, since one thread may process cells for different models across
+    its lifetime (e.g. gpt-4o and llama-3.3-70b interleaved)."""
     if not hasattr(_thread_state, "embedder"):
         _thread_state.embedder = Embedder()
         _thread_state.conn = db.connect(embed_dim=_thread_state.embedder.dim)
-        _thread_state.llm = LLMClient(
-            log_dir=REPO_ROOT / "results" / "full_sweep_llm_log" / f"thread_{threading.get_ident()}"
+        _thread_state.llm_by_model = {}
+    if model not in _thread_state.llm_by_model:
+        _thread_state.llm_by_model[model] = make_llm_client(
+            model,
+            log_dir=REPO_ROOT / "results" / "full_sweep_llm_log" / model / f"thread_{threading.get_ident()}",
         )
-    return _thread_state.embedder, _thread_state.conn, _thread_state.llm
+    return _thread_state.embedder, _thread_state.conn, _thread_state.llm_by_model[model]
 
 
 def _worker(cell: dict, spec_by_id: dict, max_attempts: int) -> tuple[str, bool, str | None]:
     trace_id = cell["trace_id"]
-    embedder, conn, llm = _get_thread_resources()
+    embedder, conn, llm = _get_thread_resources(cell["model"])
     try:
         if not db.claim_trace(conn, trace_id, max_attempts=max_attempts):
             return trace_id, False, "not claimed (already done/claimed/exhausted)"
@@ -123,6 +126,7 @@ def _worker(cell: dict, spec_by_id: dict, max_attempts: int) -> tuple[str, bool,
             derivation_transform=cell["derivation_transform"],
             seed=cell["seed"],
             max_depth=5,
+            model=cell["model"],
         )
         generate_trace(spec, config, conn, llm, embedder, trace_id=trace_id)
         db.mark_done(conn, trace_id)

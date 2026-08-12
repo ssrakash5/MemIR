@@ -37,10 +37,11 @@ from .scenarios import source_fact_map
 @dataclass
 class TraceConfig:
     top_k: int
-    write_fanout: int  # only 1 or 2 supported by this harness version
+    write_fanout: int
     derivation_transform: str
     seed: int
     max_depth: int
+    model: str = "gpt-4o-mini"  # added 2026-08-12 for the 3-model cross-model extension
 
 
 def generate_trace(
@@ -138,6 +139,7 @@ def generate_trace(
             embedding=embedder.embed(text),
             derivation_transform=config.derivation_transform,
             prompt_style=prompt_style,
+            model=config.model,
         )
         structural_ids = [local_id_to_memory_id[lid] for lid in structural_parent_local_ids]
         co_retrieved_ids = [

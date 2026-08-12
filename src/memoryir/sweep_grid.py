@@ -13,9 +13,22 @@ from .scenarios import load_all_scenarios
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
+LEGACY_MODEL = "gpt-4o-mini"  # the only model used before the 2026-08-12 cross-model extension
+
+
 def trace_key(*, scenario_id: str, top_k: int, write_fanout: int,
-              derivation_transform: str, seed: int) -> str:
-    return f"{scenario_id}__tk{top_k}__wf{write_fanout}__{derivation_transform}__seed{seed}"
+              derivation_transform: str, seed: int, model: str = LEGACY_MODEL) -> str:
+    """model=gpt-4o-mini (the default/legacy model) keeps the ORIGINAL
+    trace_id format with no model segment -- this is deliberate, not an
+    oversight: those 5,760 traces were already generated and checkpointed
+    under the old format before `model` existed as a factor. Using the
+    old format for that one model means seed_sweep_runs's ON CONFLICT
+    DO NOTHING correctly recognizes them as already-done instead of
+    re-enumerating (and re-generating, at real API cost) a duplicate set
+    under a new key. Every other model gets its own explicit segment."""
+    if model == LEGACY_MODEL:
+        return f"{scenario_id}__tk{top_k}__wf{write_fanout}__{derivation_transform}__seed{seed}"
+    return f"{scenario_id}__{model}__tk{top_k}__wf{write_fanout}__{derivation_transform}__seed{seed}"
 
 
 def load_generation_factors(grid_path: Path) -> dict:
@@ -27,6 +40,7 @@ def load_generation_factors(grid_path: Path) -> dict:
         "write_fanout": gf["write_fanout"],
         "derivation_transform": gf["derivation_transform"],
         "seeds": gf["seeds"],
+        "model": gf.get("model", [LEGACY_MODEL]),
     }
 
 
@@ -43,24 +57,27 @@ def enumerate_cells(
 
     cells = []
     for spec in specs:
-        for top_k in factors["top_k"]:
-            for write_fanout in factors["write_fanout"]:
-                for transform in factors["derivation_transform"]:
-                    for seed in factors["seeds"]:
-                        cells.append({
-                            "scenario_id": spec["scenario_id"],
-                            "top_k": top_k,
-                            "write_fanout": write_fanout,
-                            "derivation_transform": transform,
-                            "seed": seed,
-                            "trace_id": trace_key(
-                                scenario_id=spec["scenario_id"],
-                                top_k=top_k,
-                                write_fanout=write_fanout,
-                                derivation_transform=transform,
-                                seed=seed,
-                            ),
-                        })
+        for model in factors["model"]:
+            for top_k in factors["top_k"]:
+                for write_fanout in factors["write_fanout"]:
+                    for transform in factors["derivation_transform"]:
+                        for seed in factors["seeds"]:
+                            cells.append({
+                                "scenario_id": spec["scenario_id"],
+                                "model": model,
+                                "top_k": top_k,
+                                "write_fanout": write_fanout,
+                                "derivation_transform": transform,
+                                "seed": seed,
+                                "trace_id": trace_key(
+                                    scenario_id=spec["scenario_id"],
+                                    model=model,
+                                    top_k=top_k,
+                                    write_fanout=write_fanout,
+                                    derivation_transform=transform,
+                                    seed=seed,
+                                ),
+                            })
     return cells
 
 
@@ -70,6 +87,7 @@ def sanity_check(cells: list[dict], factors: dict, n_scenarios: int) -> None:
     before any generation call is made."""
     expected_n = (
         n_scenarios
+        * len(factors["model"])
         * len(factors["top_k"])
         * len(factors["write_fanout"])
         * len(factors["derivation_transform"])
@@ -85,7 +103,7 @@ def sanity_check(cells: list[dict], factors: dict, n_scenarios: int) -> None:
         f"expected {n_scenarios} distinct scenario_ids, saw {len(seen_scenarios)}"
 
     for factor_name, key in [
-        ("top_k", "top_k"), ("write_fanout", "write_fanout"),
+        ("model", "model"), ("top_k", "top_k"), ("write_fanout", "write_fanout"),
         ("derivation_transform", "derivation_transform"), ("seeds", "seed"),
     ]:
         seen = {c[key] for c in cells}
@@ -94,7 +112,7 @@ def sanity_check(cells: list[dict], factors: dict, n_scenarios: int) -> None:
 
     for scenario_id in seen_scenarios:
         for factor_name, key in [
-            ("top_k", "top_k"), ("write_fanout", "write_fanout"),
+            ("model", "model"), ("top_k", "top_k"), ("write_fanout", "write_fanout"),
             ("derivation_transform", "derivation_transform"), ("seeds", "seed"),
         ]:
             per_scenario = {c[key] for c in cells if c["scenario_id"] == scenario_id}
