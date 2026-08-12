@@ -126,6 +126,15 @@ def main() -> None:
         "",
         f"kappa {'>= 0.6 -- PASSES the hard gate' if kappa >= 0.6 else '< 0.6 -- FAILS the hard gate: rubric/adjudication logic needs redesign and re-validation before any full run'}.",
         "",
+        "## Real measured token usage (judge.usage_summary(), replaces the earlier template-based estimate)",
+        "",
+        f"```\n{judge.usage_summary()}\n```",
+        "",
+        "This is the true measured average across judge + diagnostic-adjudicator "
+        "calls on this sample -- use this, not an estimate, when projecting "
+        "full-run labeling cost (see docs/preregistration.md SS4 / the cost "
+        "discussion this closes the measurement gap for).",
+        "",
         "## IMPORTANT CAVEAT",
         "",
         "This compares the pipeline against ONE human's blind labels. Per "

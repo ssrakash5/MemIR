@@ -25,11 +25,40 @@
 # Pilot: 8 generated traces -- one scenario per poison_form (4 of the
 # 24), top_k=5, write_fanout=2, 2 of the 4 derivation_transforms, seed=0.
 # Generate each to max_depth=5, evaluate offline per the analysis_factors
-# below. Scale up to the 8-12 range recommended in review before deciding
-# whether 3,456 is affordable as specified or needs further reduction --
-# and if it does, reduce STRUCTURAL combinations (e.g. fewer top_k/write_fanout
-# points), not scenario replication -- scenario count is what makes H1-H4
-# statistically defensible in the first place.
+# below.
+#
+# DECISION 2026-08-12: DO NOT MARGINALIZE THE FULL FACTORIAL. Measured
+# real cost from the pilot generation run (results/eval_llm_log/, n=480
+# calls): ~$1.56 for the full 34,560-call generation sweep at gpt-4o-mini
+# rates, ~1 day wall-clock if run serially (straightforwardly reducible
+# via concurrency -- not a design constraint). At this cost, budget is
+# not the deciding factor for grid size -- the deciding factor is whether
+# the extra cells buy identifiable effects/interactions for H1-H4.
+#
+# Test for whether a factor/interaction is safe to marginalize away:
+#   "If we remove or marginalize this dimension, could two systems with
+#    meaningfully different blast-radius behavior become statistically
+#    indistinguishable under one of H1-H4? If yes, keep it."
+# This paper is specifically about interaction effects (depth x branching,
+# poison_form x propagation behavior, retrieval/exposure conditions,
+# multi-hop composition) -- exactly the places marginal averages hide the
+# failure modes H1-H4 exist to characterize. No factor in the current grid
+# has been shown to be a pure nuisance parameter by this test. KEEP THE
+# FULL FACTORIAL STRUCTURE.
+#
+# If total trace count needs to come down, the correct lever is REDUCED
+# REPLICATION (fewer seeds per cell), not reduced factorial coverage --
+# collapsing factors can make interaction effects unidentifiable, while
+# fewer replicates per cell only widens confidence intervals (a
+# quantifiable, acceptable tradeoff if the resulting N still supports the
+# planned analysis). This is exactly the same principle already applied
+# to scenario_id above (replication, not coverage, is the lever to cut).
+#
+# STILL OPEN (this is the one real remaining design decision before
+# committing to full-corpus generation -- see docs/preregistration.md
+# SS4): how many replicates per cell. Resolve this BEFORE revisiting grid
+# size again -- it determines whether 3,456 traces (at 3 seeds/cell) is
+# right-sized coverage or oversampling, which can't be judged aesthetically.
 
 generation_factors:
   scenario_id: SEE_SCENARIO_DESIGN_BELOW  # 24 scenarios; see "Scenario design" section

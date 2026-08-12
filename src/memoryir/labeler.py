@@ -116,7 +116,7 @@ class LLMJudge:
         },
     }
 
-    def __init__(self):
+    def __init__(self, *, log_dir: Path | None = None):
         load_dotenv(CREDS_PATH)
         self._client = AzureOpenAI(
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
@@ -124,6 +124,46 @@ class LLMJudge:
             api_version=os.environ["AZURE_OPENAI_MINI_API_VERSION"],
         )
         self.deployment = os.environ["AZURE_OPENAI_MINI_DEPLOYMENT_NAME"]
+        # Token-usage logging -- ADDED 2026-08-12 (was measured for
+        # generation calls via llm.py but not for labeler calls; closes
+        # that gap before the full run so labeling cost is measured, not
+        # estimated from the prompt template).
+        self._log_dir = log_dir or (REPO_ROOT / "results" / "labeler_llm_log")
+        self._log_dir.mkdir(parents=True, exist_ok=True)
+        self._call_count = 0
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+
+    def _log_call(self, *, call_type: str, prompt: str, completion, parsed: dict) -> None:
+        self._call_count += 1
+        usage = completion.usage.model_dump() if completion.usage else None
+        if usage:
+            self.total_prompt_tokens += usage["prompt_tokens"]
+            self.total_completion_tokens += usage["completion_tokens"]
+        log_path = self._log_dir / f"call_{self._call_count:05d}_{call_type}.json"
+        log_path.write_text(
+            json.dumps(
+                {
+                    "call_type": call_type,
+                    "prompt": prompt,
+                    "response_id": completion.id,
+                    "parsed_response": parsed,
+                    "usage": usage,
+                },
+                indent=2,
+            )
+        )
+
+    def usage_summary(self) -> dict:
+        """Real measured totals -- use this instead of estimating from the
+        prompt template when projecting full-run labeling cost."""
+        return {
+            "calls": self._call_count,
+            "total_prompt_tokens": self.total_prompt_tokens,
+            "total_completion_tokens": self.total_completion_tokens,
+            "avg_prompt_tokens": self.total_prompt_tokens / self._call_count if self._call_count else 0,
+            "avg_completion_tokens": self.total_completion_tokens / self._call_count if self._call_count else 0,
+        }
 
     def judge(self, *, semantic_target: str, candidate: str) -> dict:
         prompt = (
@@ -140,7 +180,9 @@ class LLMJudge:
             temperature=0,
             response_format=self.RUBRIC_SCHEMA,
         )
-        return json.loads(completion.choices[0].message.content)
+        parsed = json.loads(completion.choices[0].message.content)
+        self._log_call(call_type="judge", prompt=prompt, completion=completion, parsed=parsed)
+        return parsed
 
     def adjudicate(self, *, semantic_target: str, candidate: str, nli_relation: str) -> dict:
         """Fresh call: sees the NLI result but NOT the first judge's label
@@ -163,7 +205,9 @@ class LLMJudge:
             temperature=0,
             response_format=self.RUBRIC_SCHEMA,
         )
-        return json.loads(completion.choices[0].message.content)
+        parsed = json.loads(completion.choices[0].message.content)
+        self._log_call(call_type="adjudicate", prompt=prompt, completion=completion, parsed=parsed)
+        return parsed
 
 
 def would_flag_for_review(llm_label: str, nli_relation: str) -> bool:
