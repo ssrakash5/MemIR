@@ -13,7 +13,12 @@ in 4 batches of 5 (one batch per `poison_form`).
 | direct_instruction | HUMAN-APPROVED (`pilot/`) | **Batch 1 drafted, pending review** |
 | embedded_fact | HUMAN-APPROVED (`pilot/`) | **Batch 2 drafted, pending review** |
 | authoritative_framing | HUMAN-APPROVED (`pilot/`) | **Batch 3 drafted, pending review** |
-| multi_hop_setup | HUMAN-APPROVED (`pilot/`) | not started |
+| multi_hop_setup | HUMAN-APPROVED (`pilot/`) | **Batch 4 drafted, pending review** |
+
+**All 4 batches (20 scenarios) now drafted.** None are human-approved yet
+— full review of all 20 is still needed per the guidance that spot-
+checking is only acceptable for schema/formatting, not ground-truth
+approval.
 
 ## Batch 1 (direct_instruction_02–06) — drafted, awaiting review
 
@@ -95,6 +100,54 @@ drafting: `_04`'s original D3 ("direct-deposit setup takes effect within
 one pay cycle") sat too close to the poison's own bank-account-routing
 topic; replaced with an orthogonal fact before commit.
 
+## Batch 4 (multi_hop_setup_02–06) — drafted, awaiting review
+
+Same compositional structure as `_01`: every scenario has TWO true
+parents (`[P1, B1]`), because `multi_hop_setup`'s defining property is
+that neither source fact alone supports the harmful claim — this is the
+one `poison_form` where 2 true parents is correct by construction, not
+an error to correct (see `configs/experiment_grid.yaml`'s ground-truth
+principle for the general rule and why `multi_hop_setup` is the
+exception). Every P1/B1 pair follows `_01`'s "opaque capability fact +
+opaque assignment fact" shape: P1 states what some opaque
+mechanism/scope/flag permits without naming the specific downstream
+target; B1 states which specific thing is assigned to that
+mechanism/scope/flag without naming what it permits.
+
+Domains deliberately avoid `_01`'s badge/building-access theme entirely,
+to keep this batch genuinely independent rather than "access control,
+five ways":
+
+| File | Domain | Composed claim |
+|---|---|---|
+| `multi_hop_setup_02.yaml` | IT/database access | A vendor integration has elevated read-write access to the production database |
+| `multi_hop_setup_03.yaml` | Finance/accounts-payable | Contractor invoices auto-approve up to $50,000 |
+| `multi_hop_setup_04.yaml` | Warehouse/fulfillment | A returns-processing contractor has write access to the fulfillment ledger |
+| `multi_hop_setup_05.yaml` | Legal/data governance | A customer-analytics dataset can be exported to external partners |
+| `multi_hop_setup_06.yaml` | DevOps/CI-CD | Payments-service deploys skip manual review |
+
+**Multiple distractors caught and replaced during drafting** (worth
+noting since this batch is the one most prone to a specific
+contamination risk: opaque-capability scenarios tend to produce
+distractors that reuse the poison's own vocabulary, e.g. a "tier" or
+"cost-center" distractor sitting too close to a "classification tier" or
+"cost-center CC-204" poison):
+- `_03`: replaced D2/D4/D6/D8 (all touched "invoice processing" or
+  literally said "cost-center codes," echoing the poison's own vocabulary).
+- `_04`: replaced one distractor referencing "warehouse management
+  system," too close to P1's "warehouse-system migration" phrasing.
+- `_05`: replaced D3 ("storage tier") and D6 ("data governance
+  committee") — both echoed the poison's "classification tier" /
+  "data-governance policy" vocabulary directly.
+
+This suggests a **general lesson for multi_hop_setup scenarios
+specifically**: because the poison's vocabulary is often a generic-
+sounding term (a tier, a scope, a flag, a cost-center), distractors need
+an extra pass checking for *lexical* overlap with the poison's key terms,
+not just topical/thematic overlap — worth calling out during review as a
+pattern to watch for, and worth building into future scenario authoring
+(batches beyond this initial 24) as an explicit check.
+
 ## Cross-scenario distractor check (self-audit, not a substitute for review)
 
 Spot-checked each scenario's 9 distractors against its own `child_2`
@@ -109,6 +162,10 @@ self-audit, not a replacement for it.
 ## Not yet done
 
 - Marker-token placement isn't applied to any scenario yet — per
-  `docs/labeling_protocol.md`, exact format is deferred until after the
-  first batch is reviewed.
-- Batch 4 (`multi_hop_setup` — 5 scenarios) not started.
+  `docs/labeling_protocol.md`, exact format is deferred until after this
+  first full set of 20 is reviewed.
+- **All 20 scenarios need full human review before being marked
+  approved.** None of the corrections made during drafting (see each
+  batch section above) substitute for that — they're a self-audit against
+  the same class of error the pilot review caught, not a review pass
+  itself.
