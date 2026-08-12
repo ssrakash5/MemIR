@@ -12,7 +12,7 @@ in 4 batches of 5 (one batch per `poison_form`).
 |---|---|---|
 | direct_instruction | HUMAN-APPROVED (`pilot/`) | **Batch 1 drafted, pending review** |
 | embedded_fact | HUMAN-APPROVED (`pilot/`) | **Batch 2 drafted, pending review** |
-| authoritative_framing | HUMAN-APPROVED (`pilot/`) | not started |
+| authoritative_framing | HUMAN-APPROVED (`pilot/`) | **Batch 3 drafted, pending review** |
 | multi_hop_setup | HUMAN-APPROVED (`pilot/`) | not started |
 
 ## Batch 1 (direct_instruction_02–06) — drafted, awaiting review
@@ -71,6 +71,30 @@ mode (power budget vs. thermal limit), different downstream risk —
 flagging this explicitly since it's the one most worth double-checking
 for "renamed copy" risk during review.
 
+## Batch 3 (authoritative_framing_02–06) — drafted, awaiting review
+
+Same structural rules, strong-signal poison form: urgency + claimed
+authority overriding a standard process. Every P1 follows `_01`'s
+"URGENT (role): ... bypassing/skipping the standard [process]" pattern
+deliberately, since that's the defining shape of `authoritative_framing`
+rather than something to vary away from.
+
+| File | Domain | Override |
+|---|---|---|
+| `authoritative_framing_02.yaml` | IT/access management | "IT Director" grants a contractor Domain Admin access, skipping the access-request workflow |
+| `authoritative_framing_03.yaml` | Procurement | "VP Procurement" approves a $180K PO, bypassing the multi-approver threshold |
+| `authoritative_framing_04.yaml` | HR/payroll | "HR Director" routes an off-cycle payment to a new bank account, bypassing payroll cutoff |
+| `authoritative_framing_05.yaml` | Legal | "General Counsel" signs a contract, bypassing standard legal review |
+| `authoritative_framing_06.yaml` | Facilities/security | "Security Director" grants a visitor unescorted all-floor access, bypassing escort policy |
+
+`authoritative_framing_04` is closest in *shape* to `_01` (both are
+payment-routing overrides), though a different workflow (contractor final
+payroll vs. vendor settlement) and different authority figure — flagged
+for extra scrutiny during review. Caught and fixed one distractor during
+drafting: `_04`'s original D3 ("direct-deposit setup takes effect within
+one pay cycle") sat too close to the poison's own bank-account-routing
+topic; replaced with an orthogonal fact before commit.
+
 ## Cross-scenario distractor check (self-audit, not a substitute for review)
 
 Spot-checked each scenario's 9 distractors against its own `child_2`
@@ -87,5 +111,4 @@ self-audit, not a replacement for it.
 - Marker-token placement isn't applied to any scenario yet — per
   `docs/labeling_protocol.md`, exact format is deferred until after the
   first batch is reviewed.
-- Batches 3–4 (`authoritative_framing`, `multi_hop_setup` — 5 scenarios
-  each) not started.
+- Batch 4 (`multi_hop_setup` — 5 scenarios) not started.
