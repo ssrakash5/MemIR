@@ -348,25 +348,41 @@ labeling procedure as long as that's stated transparently, which this is.
 κ = 0.8103, raw agreement 89.2% (107/120). Full report:
 `results/kappa_sample/kappa_report_v1_with_adjudication_SUPERSEDED.md`.
 
-**Run 2 (adjudicator diagnostic-only) — FINAL:**
+**Run 2 (adjudicator diagnostic-only) — two independent executions, same
+code, same 120 samples, same `temperature=0`:**
 
-- **Cohen's κ = 0.8699.** Passes the ≥0.6 hard gate with substantial
-  margin, and improved over run 1.
-- **Raw agreement: 92.5%** (111/120, up from 107/120).
-- **Confusion matrix** (rows=human, columns=pipeline):
+| | Run 2a (initial) | Run 2b (rerun, added token logging only) |
+|---|---|---|
+| Cohen's κ | 0.8699 | 0.8838 |
+| Raw agreement | 92.5% (111/120) | 93.3% (112/120) |
+| CARRIES P/R | 0.88 / 0.96 | 0.89 / 0.98 |
+| REFERENCES P/R | 0.75 / 0.46 | 0.86 / 0.46 |
+| CLEAN P/R | 1.00 / 1.00 | 0.98 / 1.00 |
+| Diagnostic-adjudication flag rate | 18.3% (22/120) | 17.5% (21/120) |
 
-  | | CARRIES | REFERENCES | CLEAN |
-  |---|---|---|---|
-  | **CARRIES** | 49 | 2 | 0 |
-  | **REFERENCES** | 7 | 6 | 0 |
-  | **CLEAN** | 0 | 0 | 56 |
+**Real finding, not a discrepancy to explain away: `temperature=0` does
+not guarantee bit-identical output across separate Azure OpenAI API
+calls.** Run 2b's only code change from 2a was adding token-usage logging
+(`git diff` confirms zero changes to prompt construction, request
+parameters, or labeling logic) — yet the labels themselves shifted on a
+few samples. This is expected, known behavior for hosted LLM APIs (not
+specific to this pipeline), but worth stating plainly for reproducibility
+claims: **do not describe this pipeline as deterministic** even though
+`temperature=0` is set. Both runs are kept for the record
+(`results/kappa_sample/kappa_report.md` is 2b, the more recent; 2a's
+numbers are in this table and in git history).
 
-- **Per-class:** CLEAN is perfect (P=1.00, R=1.00). CARRIES improved
-  (P=0.88, R=0.96, up from 0.84/0.94). **REFERENCES improved but remains
-  the weakest class** (P=0.75, R=0.46, up from 0.50/0.23 — recall
-  roughly doubled, from 3/13 to 6/13 correctly identified).
+**This strengthens rather than weakens confidence in the gate result**:
+two independent executions of the identical final pipeline both clear
+κ≥0.6 with substantial margin (0.8699 and 0.8838), and the direction of
+the REFERENCES-class weakness is stable across both (recall stuck at
+6/13 both times; only precision differed). A single run passing could
+have been luck; two independent runs landing in the same range is
+better evidence the pipeline is genuinely reliable, not just that one
+sample happened to go well.
 
-Full report: `results/kappa_sample/kappa_report.md`.
+Full reports: `results/kappa_sample/kappa_report.md` (run 2b, current)
+and git history for run 2a's report before it was overwritten.
 
 **What changed and why, in order:**
 

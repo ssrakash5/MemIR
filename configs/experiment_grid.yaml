@@ -28,12 +28,16 @@
 # below.
 #
 # DECISION 2026-08-12: DO NOT MARGINALIZE THE FULL FACTORIAL. Measured
-# real cost from the pilot generation run (results/eval_llm_log/, n=480
-# calls): ~$1.56 for the full 34,560-call generation sweep at gpt-4o-mini
-# rates, ~1 day wall-clock if run serially (straightforwardly reducible
-# via concurrency -- not a design constraint). At this cost, budget is
-# not the deciding factor for grid size -- the deciding factor is whether
-# the extra cells buy identifiable effects/interactions for H1-H4.
+# real cost, both legs now measured (not estimated): generation ~$1.56
+# (results/eval_llm_log/, n=480 calls) + labeling ~$3.77 (real measured
+# tokens via LLMJudge.usage_summary(), not the earlier template estimate
+# -- see docs/labeling_protocol.md's kappa section) = ~$5.33 total for
+# the full 34,560-generation + ~40,600-labeling call pipeline at
+# gpt-4o-mini rates. ~1 day wall-clock if run serially (straightforwardly
+# reducible via concurrency -- not a design constraint). At this cost,
+# budget is not the deciding factor for grid size -- the deciding factor
+# is whether the extra cells buy identifiable effects/interactions for
+# H1-H4.
 #
 # Test for whether a factor/interaction is safe to marginalize away:
 #   "If we remove or marginalize this dimension, could two systems with

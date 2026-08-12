@@ -4,17 +4,17 @@
 still run and logged whenever the disagreement condition flags a sample, but never overrides the primary judge. See src/memoryir/labeler.py's module docstring and results/kappa_sample/kappa_report_v1_with_adjudication_SUPERSEDED.md for the original (adjudicator-can-override) methodology this supersedes, and why it was changed.
 
 N = 120
-Flagged for diagnostic adjudication (did not override): 25/120 samples (20.8%)
+Flagged for diagnostic adjudication (did not override): 21/120 samples (17.5%)
 
-**Cohen's kappa: 0.8699**
-**Raw agreement: 0.9250** (111/120)
+**Cohen's kappa: 0.8838**
+**Raw agreement: 0.9333** (112/120)
 
 ## Confusion matrix (rows=human, columns=pipeline)
 
 | | CARRIES | REFERENCES | CLEAN |
 |---|---|---|---|
-| **CARRIES** | 49 | 2 | 0 |
-| **REFERENCES** | 7 | 6 | 0 |
+| **CARRIES** | 50 | 1 | 0 |
+| **REFERENCES** | 6 | 6 | 1 |
 | **CLEAN** | 0 | 0 | 56 |
 
 ## Per-class precision/recall (human labels as ground truth)
@@ -22,19 +22,27 @@ Flagged for diagnostic adjudication (did not override): 25/120 samples (20.8%)
 ```
               precision    recall  f1-score   support
 
-     CARRIES       0.88      0.96      0.92        51
-  REFERENCES       0.75      0.46      0.57        13
-       CLEAN       1.00      1.00      1.00        56
+     CARRIES       0.89      0.98      0.93        51
+  REFERENCES       0.86      0.46      0.60        13
+       CLEAN       0.98      1.00      0.99        56
 
     accuracy                           0.93       120
-   macro avg       0.88      0.81      0.83       120
-weighted avg       0.92      0.93      0.92       120
+   macro avg       0.91      0.81      0.84       120
+weighted avg       0.93      0.93      0.92       120
 
 ```
 
 ## Gate check (docs/labeling_protocol.md)
 
 kappa >= 0.6 -- PASSES the hard gate.
+
+## Real measured token usage (judge.usage_summary(), replaces the earlier template-based estimate)
+
+```
+{'calls': 141, 'total_prompt_tokens': 51309, 'total_completion_tokens': 8988, 'avg_prompt_tokens': 363.8936170212766, 'avg_completion_tokens': 63.744680851063826}
+```
+
+This is the true measured average across judge + diagnostic-adjudicator calls on this sample -- use this, not an estimate, when projecting full-run labeling cost (see docs/preregistration.md SS4 / the cost discussion this closes the measurement gap for).
 
 ## IMPORTANT CAVEAT
 
