@@ -5,6 +5,8 @@ venv/
 .env
 results/*
 !results/.gitkeep
+!results/kappa_sample/
+results/kappa_sample/*.csv
 docs/papers/*.pdf
 .pytest_cache/
 *.egg-info/
