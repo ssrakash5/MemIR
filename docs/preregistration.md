@@ -15,10 +15,17 @@ distractor/clean-sibling contamination, zero `true_parents` errors found
 — see `configs/scenarios/README.md` for full detail). Also RESOLVED
 2026-08-12: the automated labeler pipeline (LLM-primary + NLI
 verification + adjudication, marker tokens excluded from the label
-decision — see `docs/labeling_protocol.md`). Still not ready to gate
-data generation: κ
-validation hasn't run, the 20 new scenarios aren't approved, and sample
-sizes below still need the real numbers plugged in once the pilot runs.
+decision — see `docs/labeling_protocol.md`). Also done 2026-08-12: a v1
+`eval/` generation harness (scoped to labeling validation, not the full
+production sweep — see `CLAUDE.md` and `eval/README.md`), run
+successfully (48 real traces, 480+ derived memories), and 8/10 labeling
+worked examples built from that real output (2 categories genuinely
+searched for and not found — a reportable finding, see
+`docs/labeling_protocol.md`). **Status: BLOCKED** — see the closing
+section below for the authoritative blocker list. κ validation has not
+been run, and two scientific-framing questions surfaced by the worked
+examples need resolution before the rubric can be frozen. Sample sizes
+below still need real numbers plugged in.
 **Do not generate experiment data against this version.**
 
 ---
@@ -216,11 +223,49 @@ first 2026-08-11 revision):
 7. ~~Automated labeler combination rule~~ — RESOLVED 2026-08-12:
    LLM-primary + NLI verification + adjudication, marker tokens excluded
    from the label decision entirely (see `docs/labeling_protocol.md`).
-   **Still open:** κ validation hasn't been run at all (needs real
-   harness output), and the 9 remaining worked examples.
 8. ~~MPBench, AgentPoison, MINJA full reads~~ — done 2026-08-12; the
    entire `week1_execution_plan.md` §1 literature gate is closed (see
    `docs/prior_art.md`).
-9. ~~20 new scenarios reviewed/approved~~ — done 2026-08-12. Once κ
-   validation passes, re-commit with a note marking it as the actual pre-registration
-   timestamp; no data generation before that commit.
+9. ~~20 new scenarios reviewed/approved~~ — done 2026-08-12.
+10. ~~eval/ harness (v1, scoped) built and run~~ — done 2026-08-12: 48
+    real traces (24 approved scenarios × 2 transforms), 480+ derived
+    memories with full oracle bookkeeping. See `eval/README.md`.
+11. ~~9 remaining labeling worked examples~~ — done 2026-08-12, built
+    from real `eval/` output (`docs/labeling_protocol.md`). 8/10 filled;
+    2 categories (surface-CLEAN-but-structurally-descended, multi-step
+    laundering) were searched for directly across 4 derivation transforms
+    and 5 depths and genuinely not found — reported as a finding (**zero
+    observed laundering in the pilot corpus**), not silently skipped.
+    This bears directly on H3 and the falsification condition in §6 above
+    — needs discussion, not silent resolution.
+12. **Two new open items surfaced by the worked-examples pass, both
+    need resolution before the rubric can be frozen** (see
+    `docs/labeling_protocol.md`'s closing section, items 6–7): (a) the
+    `multi_hop_setup` CARRIES/REFERENCES boundary — the model
+    systematically juxtaposes rather than composes its two source facts,
+    across every trace checked, not a one-off; (b) an oracle-vs-content
+    divergence finding — `CO_RETRIEVED` content measurably leaked into
+    focused writes in 2 of the checked traces, producing content-CARRIES
+    that a structural-only detector would miss entirely. (b) especially
+    may need to change how H1/H2/H4 are framed (over-tainting isn't the
+    only structural-detection failure mode; under-counting via
+    `CO_RETRIEVED` leakage is a real, observed second failure mode) —
+    this is a scientific framing question, not an engineering task.
+13. **Still open, the two real remaining blockers:** κ validation hasn't
+    been run at all — the harness output now exists to draw the 100–150
+    memory sample from, but the sample hasn't been drawn or hand-labeled.
+    And the rubric can't be frozen (per this file's own §6/step-3 plan)
+    until items 12(a)/12(b) above are resolved.
+14. Once the rubric is frozen and κ validation passes, re-commit with a
+    note marking it as the actual pre-registration timestamp; no data
+    generation before that commit.
+
+**Status: BLOCKED.** Blocker A (production `eval/` harness) — **closed**,
+v1 scoped to labeling validation exists and ran successfully. Blocker B
+(labeling protocol worked examples) — **substantially closed**, 8/10
+filled from real data, 2 explicitly and honestly not found (a finding,
+not a gap). Blocker C (κ validation) — **still fully open**, not started.
+Two new scientific-framing items (12a/12b above) also block freezing the
+rubric, independent of κ. Everything else in this document can continue
+in parallel, but per the original plan: none of it clears the gate on
+its own.
