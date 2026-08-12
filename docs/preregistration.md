@@ -9,10 +9,17 @@ attribute, and oracle authoring resolved to programmatic generation from a
 human-approved scenario spec. `depth`/`attribution_threshold` remain
 analysis-time factors, now validated by `spike/06_prefix_property.py`
 (GREEN). The pilot's 4 scenario specs (one per `poison_form`) are now
-**HUMAN-APPROVED** (`configs/scenarios/pilot/`, approved 2026-08-11) — the
-remaining 20 (5 more per `poison_form`) still don't exist. Still not ready
-to gate data generation: κ validation hasn't run, and sample sizes below
-still need the real numbers plugged in once the pilot runs.
+**HUMAN-APPROVED** (`configs/scenarios/pilot/`, approved 2026-08-11); the
+remaining 20 are now **drafted but NOT yet approved**
+(`configs/scenarios/`, drafted 2026-08-12 in 4 batches — see that
+directory's README for per-batch detail and self-audit notes). All 24
+scenario files exist and validate as YAML; only 4 of 24 have been through
+human ground-truth review. Also RESOLVED 2026-08-12: the automated
+labeler pipeline (LLM-primary + NLI verification + adjudication, marker
+tokens excluded from the label decision — see
+`docs/labeling_protocol.md`). Still not ready to gate data generation: κ
+validation hasn't run, the 20 new scenarios aren't approved, and sample
+sizes below still need the real numbers plugged in once the pilot runs.
 **Do not generate experiment data against this version.**
 
 ---
@@ -198,16 +205,24 @@ first 2026-08-11 revision):
 5. ~~`scenario_id`/pseudo-replication question, oracle-authoring method~~ —
    RESOLVED 2026-08-11: 24 scenarios, programmatic oracle generation from
    human-approved specs.
-6. ~~The 24 scenario specifications don't exist yet~~ — **pilot's 4 done
-   and HUMAN-APPROVED 2026-08-11** (`configs/scenarios/pilot/`), including
-   a full ground-truth review pass that corrected `true_parents` to the
-   minimal causally-necessary set in 3/4 (see that directory's README).
-   **Still open:** the remaining 20 (5 more per `poison_form`).
-7. `docs/labeling_protocol.md` needs: κ validation run and passed (still
-   undecided whether as one pass or two, against the content vs. oracle
-   label layers), remaining 9 worked examples.
+6. ~~The 24 scenario specifications don't exist yet~~ — **all 24 now
+   exist.** Pilot's 4 HUMAN-APPROVED 2026-08-11 (`configs/scenarios/pilot/`),
+   including a full ground-truth review pass that corrected `true_parents`
+   to the minimal causally-necessary set in 3/4. Remaining 20 drafted
+   2026-08-12 in 4 batches (`configs/scenarios/`), applying the same
+   corrected principle from the start plus a self-audit that caught and
+   fixed several distractors echoing the poison's own vocabulary
+   (`multi_hop_setup` batch especially — see that directory's README).
+   **Still open: none of the 20 are human-approved yet** — full review
+   required before any generation run treats them as ground truth.
+7. ~~Automated labeler combination rule~~ — RESOLVED 2026-08-12:
+   LLM-primary + NLI verification + adjudication, marker tokens excluded
+   from the label decision entirely (see `docs/labeling_protocol.md`).
+   **Still open:** κ validation hasn't been run at all (needs real
+   harness output), and the 9 remaining worked examples.
 8. ~~MPBench, AgentPoison, MINJA full reads~~ — done 2026-08-12; the
    entire `week1_execution_plan.md` §1 literature gate is closed (see
    `docs/prior_art.md`).
-9. Once 6–7 are done, re-commit with a note marking it as the actual
-   pre-registration timestamp; no data generation before that commit.
+9. Once the 20 new scenarios are reviewed/approved and κ validation
+   passes, re-commit with a note marking it as the actual pre-registration
+   timestamp; no data generation before that commit.
