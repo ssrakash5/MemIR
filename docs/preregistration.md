@@ -30,30 +30,66 @@ below still need real numbers plugged in.
 
 ---
 
-## 1. Hypotheses (unchanged from the first 2026-08-11 revision)
+## 1. Hypotheses (REVISED 2026-08-12, second revision — see rationale below)
 
-- **H1 — Blast-radius inflation.** Conservative provenance (`attribution_threshold=null`)
-  has high blast-radius recall (R_BR) but suffers superlinear blast-radius
-  inflation (\|B_flagged\|/\|B_true\|) as retrieval fan-out (`top_k`) and
-  write fan-out (`write_fanout`) grow.
-- **H2 — Precision/recall frontier shifts with depth.** Attribution
-  thresholds reduce inflation but reduce recall, and this P_BR/R_BR
-  frontier shifts with derivation depth. Report as a frontier, not a
-  collapsed "best threshold" scalar — see marginalization rule below.
-- **H3 — Execution provenance outlasts surface traceability.** Surface-level
-  (marker-token) traceability degrades faster with `derivation_transform`
-  strength than execution-provenance (oracle-based) traceability does.
-  Operationalized via the `TRUE_DESCENDANT + CLEAN` oracle/content-label
-  intersection in `docs/labeling_protocol.md` — this is the precise
-  definition of "laundered," replacing the earlier `CARRIES == true AND
-  markers absent` definition, which conflated the content-label and
-  oracle-label layers.
-- **H4 — Depth-aware containment reduces over-quarantine.** The
-  `depth_aware` containment policy substantially reduces unnecessary
-  quarantine relative to `flat_transitive`, measured via containment cost
-  (C_regen, defined below), while preserving high action-level containment
-  recall. `containment_policy` is a post-hoc analysis factor, not a new
-  generation axis.
+**Why revised:** real `eval/` output (`docs/labeling_protocol.md` worked
+example 8) showed `CO_RETRIEVED` content leaking into a write and
+producing genuine content-level CARRIES whose only `STRUCTURAL_PARENT` is
+an unrelated benign fact. The original H1/H2/H4 implicitly assumed every
+`CO_RETRIEVED` edge was a potential *false positive* (over-tainting risk
+only). That assumption is now falsified by direct observation — incidental
+context uptake can also cause a real *false negative* for any
+structural-lineage-only detector. H1/H2/H4 below are rewritten to
+recognize both failure modes; this is a stronger, more accurate framing,
+not a retreat. See `docs/labeling_protocol.md`'s three-layer table
+(structural lineage / context exposure / semantic contamination) for the
+conceptual distinction this rests on.
+
+- **H1 — Recall vs. inflation growth.** Context-exposure-based
+  (conservative, `attribution_threshold=null`) provenance preserves high
+  blast-radius recall (R_BR) against the semantic-contamination ground
+  truth (B_true = objects where `content_label == CARRIES`) as retrieval
+  fan-out (`top_k`) and write fan-out (`write_fanout`) grow, but its
+  quarantine set (B_flagged) grows increasingly larger than B_true
+  (superlinear inflation). Test this, don't assume it holds by
+  construction — H1 is no longer trivially true merely because
+  conservative propagation flags everything reachable, since B_true is
+  now anchored to content labels, not structural reachability.
+- **H2 — Precision/recall frontier from attribution, including missed
+  incidental uptake.** Attribution thresholds reduce inflation (fewer
+  false positives) but can also reduce recall by pruning away
+  `CO_RETRIEVED` edges that turn out to be the only path to real
+  semantic contamination — not just by pruning away weakly-attributed
+  `STRUCTURAL_PARENT` edges. Report the full P_BR/R_BR frontier, not a
+  collapsed "best threshold" scalar, and explicitly check whether
+  thresholding drops recall on cases structurally analogous to worked
+  example 8.
+- **H3 — Surface vs. execution-provenance traceability (NON-DIRECTIONAL,
+  revised 2026-08-12).** Characterize how surface-level (marker-token)
+  traceability and structural-lineage traceability diverge across
+  `derivation_transform` and depth — **do not preregister a direction**.
+  The pilot corpus (48 real traces, 4 of 4 derivation transforms tested
+  across a subset, temperature 0) showed **zero organic laundering**:
+  across every `child_1` (`TRUE_DESCENDANT`) lineage checked, the marker
+  and the semantic claim survived intact through depth 5. Preregistering
+  "laundering increases with depth/transform strength" after already
+  observing evidence against it would be indefensible. The exact pilot
+  finding, to be reported as-is regardless of what the full run shows:
+  *"Across 48 traces plus targeted refine/continue probes at temperature
+  0, no case was observed in which the harmful semantic content
+  disappeared while structural ancestry persisted."* If the full
+  experiment uses materially different models, temperatures, or prompts
+  than this pilot, that scope difference must be stated explicitly next
+  to any laundering-rate claim.
+- **H4 — Containment: missed contamination AND unnecessary cost.** The
+  `depth_aware` containment policy is compared against `flat_transitive`
+  on *both* axes: over-quarantine cost (unnecessary quarantine/
+  regeneration, via `containment_cost`/C_regen and Regeneration Overhead)
+  *and* missed contaminated objects (real CARRIES objects that neither
+  policy's B_flagged reaches — the failure mode worked example 8
+  demonstrates is real). The paper's contribution is the
+  precision-recall frontier of incident containment, not a one-sided
+  demonstration that conservative taint explodes.
 
 ## 2. Variables
 
@@ -165,25 +201,43 @@ instances of a style is what the 6-scenario replication is for.
   0 is still analyzed for the surface-marker baseline and harness
   validation.
 
-## 6. Falsification conditions (unchanged from the first revision)
+## 6. Falsification conditions (REVISED 2026-08-12 to match the H1–H4 rewrite)
 
 Stated in advance, to be reported regardless of outcome:
 
 - **If blast-radius inflation stays near 1.0× across the tested fan-out
-  range**, the over-tainting problem motivating this paper doesn't
-  materialize in practice and the premise is wrong.
+  range**, the over-tainting problem motivating H1 doesn't materialize in
+  practice and that half of the paper's premise is wrong.
+- **If missed-contamination counts (real CARRIES objects unreachable by
+  any tested B_flagged policy, per H2/H4) stay near zero**, the
+  under-detection failure mode worked example 8 demonstrated in the pilot
+  turns out to be rare at scale, and H2/H4's "recall risk from pruning"
+  framing loses its motivation — this would still be worth reporting, not
+  hidden, since it would mean the pilot's finding didn't generalize.
 - **If depth-aware containment (H4) doesn't measurably reduce over-
-  quarantine relative to flat transitive taint**, the paper's proposed
-  remedy has no advantage over the naive baseline.
-- **If execution-provenance recall degrades at the same rate as surface
-  traceability (H3 null)**, the case for provenance over simpler
-  content-matching approaches weakens substantially.
+  quarantine relative to flat transitive taint, or does so by materially
+  increasing missed contamination**, the paper's proposed remedy has no
+  net advantage over the naive baseline.
+- **H3 has no directional falsification condition** (it's non-directional
+  by design, see above) — instead, the reportable outcome is simply
+  whichever divergence (or lack of divergence) between surface and
+  structural-lineage traceability is actually observed at full-run scale,
+  compared explicitly against the pilot's zero-laundering finding. If the
+  full run also shows zero laundering, that itself is the result — not a
+  failure to find something that was expected.
 
 ## Metric definitions (canonical — supersedes earlier E_* notation)
 
-Set notation over blast-radius **objects**, not edges (edges get a
-separate P_E/R_E pair — see below; conflating the two was an error in the
-first 2026-08-11 revision):
+**B_true is anchored to the semantic-contamination layer specifically
+(objects with `content_label == CARRIES`), not structural reachability
+(`TRUE_DESCENDANT`) — corrected 2026-08-12.** This was ambiguous in the
+first 2026-08-11 revision and the ambiguity mattered: worked example 8
+shows a real case where these two would give different answers (a
+`COEXPOSED` node — not `TRUE_DESCENDANT` — that nonetheless has
+`content_label == CARRIES`). See `docs/labeling_protocol.md`'s
+three-layer table (structural lineage / context exposure / semantic
+contamination) for the full distinction. Set notation over blast-radius
+**objects**, not edges (edges get a separate P_E/R_E pair — see below):
 
 - Blast-radius precision: P_BR = \|B_flagged ∩ B_true\| / \|B_flagged\|
 - Blast-radius recall: R_BR = \|B_flagged ∩ B_true\| / \|B_true\|
@@ -195,9 +249,17 @@ first 2026-08-11 revision):
   Overhead = C_predicted / C_oracle.
 - Attribution edge quality: P_E, R_E — precision/recall of inferred
   `(parent, child)` edges against the oracle's `STRUCTURAL_PARENT` vs.
-  `CO_RETRIEVED` labels. Distinct question from blast-radius reconstruction
-  (did we infer the right edges vs. did we reconstruct the right exposed
-  set) — report separately, do not collapse into one number.
+  `CO_RETRIEVED` labels — this measures structural-lineage inference
+  quality, a distinct question from blast-radius reconstruction (semantic
+  contamination). These CAN diverge (worked example 8) — report
+  separately, do not collapse into one number.
+- `derivation_contract_satisfied` (boolean, per memory, distinct from
+  `content_label`): did this write express its intended `target_semantics`
+  — see `docs/labeling_protocol.md`'s compositional-target rule. Not
+  itself a headline metric, but useful for diagnosing *why* a
+  `multi_hop_setup`-style write ended up REFERENCES instead of CARRIES
+  (structurally on-contract but not semantically composed, vs. genuinely
+  off-contract).
 
 ## Before this can be committed as the real pre-registration
 
@@ -230,42 +292,48 @@ first 2026-08-11 revision):
 10. ~~eval/ harness (v1, scoped) built and run~~ — done 2026-08-12: 48
     real traces (24 approved scenarios × 2 transforms), 480+ derived
     memories with full oracle bookkeeping. See `eval/README.md`.
-11. ~~9 remaining labeling worked examples~~ — done 2026-08-12, built
-    from real `eval/` output (`docs/labeling_protocol.md`). 8/10 filled;
-    2 categories (surface-CLEAN-but-structurally-descended, multi-step
-    laundering) were searched for directly across 4 derivation transforms
-    and 5 depths and genuinely not found — reported as a finding (**zero
-    observed laundering in the pilot corpus**), not silently skipped.
-    This bears directly on H3 and the falsification condition in §6 above
-    — needs discussion, not silent resolution.
-12. **Two new open items surfaced by the worked-examples pass, both
-    need resolution before the rubric can be frozen** (see
-    `docs/labeling_protocol.md`'s closing section, items 6–7): (a) the
-    `multi_hop_setup` CARRIES/REFERENCES boundary — the model
-    systematically juxtaposes rather than composes its two source facts,
-    across every trace checked, not a one-off; (b) an oracle-vs-content
-    divergence finding — `CO_RETRIEVED` content measurably leaked into
-    focused writes in 2 of the checked traces, producing content-CARRIES
-    that a structural-only detector would miss entirely. (b) especially
-    may need to change how H1/H2/H4 are framed (over-tainting isn't the
-    only structural-detection failure mode; under-counting via
-    `CO_RETRIEVED` leakage is a real, observed second failure mode) —
-    this is a scientific framing question, not an engineering task.
-13. **Still open, the two real remaining blockers:** κ validation hasn't
-    been run at all — the harness output now exists to draw the 100–150
-    memory sample from, but the sample hasn't been drawn or hand-labeled.
-    And the rubric can't be frozen (per this file's own §6/step-3 plan)
-    until items 12(a)/12(b) above are resolved.
-14. Once the rubric is frozen and κ validation passes, re-commit with a
-    note marking it as the actual pre-registration timestamp; no data
-    generation before that commit.
+11. ~~Worked examples~~ — done 2026-08-12, built from real `eval/`
+    output (`docs/labeling_protocol.md`). 8 observed empirical examples;
+    2 prespecified categories (surface-CLEAN-but-structurally-descended,
+    multi-step laundering) searched for directly across 4 derivation
+    transforms and 5 depths and genuinely not found — reported as a
+    finding (**zero observed laundering in the pilot corpus**), not a
+    completion-count gap. Not phrased as "8/10" per correction below.
+12. ~~Two open items from the worked-examples pass~~ — **RESOLVED
+    2026-08-12, same session:** (a) `multi_hop_setup` CARRIES/REFERENCES
+    boundary — froze the compositional-target rule (CARRIES requires
+    asserting the *composed* proposition; juxtaposing premises without
+    composing them is REFERENCES) in `docs/labeling_protocol.md`, and
+    added a separate `derivation_contract_satisfied` field (structural
+    on-contract vs. semantic composition are different questions).
+    Relabeled worked example 6 from "borderline, leaning CARRIES" to
+    REFERENCES accordingly. (b) oracle-vs-content divergence — corrected
+    the `CO_RETRIEVED` definition (validates structural necessity under
+    the authored contract, makes no claim about actual model behavior or
+    content), introduced the three-layer framework (structural lineage /
+    context exposure / semantic contamination), and rewrote H1/H2/H4
+    above to recognize incidental context uptake as a real, observed
+    second failure mode alongside over-tainting.
+13. ~~My (Claude's) blind labeling could substitute for human κ~~ —
+    **CORRECTED 2026-08-12: it cannot.** `docs/labeling_protocol.md`'s
+    human-validation section now states explicitly that "human
+    validation" requires an actual human; an AI blind-labeling pass is a
+    legitimate supplementary `pipeline ↔ Claude` audit, never blended
+    into or substituted for `pipeline ↔ human`.
+14. **Still open, the one real remaining blocker:** κ validation hasn't
+    been run at all. The rubric is now frozen (items 12a/12b resolved)
+    and the harness output exists to draw the 100–150 memory sample
+    from — but the sample hasn't been drawn, and a human still needs to
+    do the blind labeling (not delegable, see item 13).
+15. Once κ validation passes, re-commit with a note marking it as the
+    actual pre-registration timestamp; no data generation before that
+    commit.
 
-**Status: BLOCKED.** Blocker A (production `eval/` harness) — **closed**,
-v1 scoped to labeling validation exists and ran successfully. Blocker B
-(labeling protocol worked examples) — **substantially closed**, 8/10
-filled from real data, 2 explicitly and honestly not found (a finding,
-not a gap). Blocker C (κ validation) — **still fully open**, not started.
-Two new scientific-framing items (12a/12b above) also block freezing the
-rubric, independent of κ. Everything else in this document can continue
-in parallel, but per the original plan: none of it clears the gate on
-its own.
+**Status: BLOCKED, one blocker remaining (down from three).** Blocker A
+(harness) — closed. Blocker B (worked examples) — closed (8 observed + 2
+honestly-not-found, rubric frozen). Blocker C (κ validation) — still
+fully open, and now unambiguously the critical path: rubric is frozen, so
+this can start as soon as a human draws and blind-labels the sample.
+Everything else in this document can continue in parallel, but per the
+original agreed ordering: none of it clears the scientific gate on its
+own.

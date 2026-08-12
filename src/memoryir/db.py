@@ -29,9 +29,18 @@ SCHEMA_STATEMENTS = [
         derivation_transform TEXT,
         prompt_style TEXT,
         content_label TEXT,              -- CARRIES/REFERENCES/CLEAN -- filled in by the labeler, NULL at generation time
+        derivation_contract_satisfied BOOLEAN,  -- did this write express its target_semantics, distinct from content_label
+                                                 -- (added 2026-08-12; see docs/labeling_protocol.md's compositional-target rule --
+                                                 -- a multi_hop_setup child can be structurally on-contract, using all
+                                                 -- intended parents, while still failing to compose them into the
+                                                 -- target proposition, i.e. content_label=REFERENCES not CARRIES).
+                                                 -- NULL at generation time, filled in alongside content_label.
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
     """,
+    # Migration for tables created before derivation_contract_satisfied
+    # existed (CREATE TABLE IF NOT EXISTS doesn't alter an existing table).
+    "ALTER TABLE memories ADD COLUMN IF NOT EXISTS derivation_contract_satisfied BOOLEAN",
     "CREATE INDEX IF NOT EXISTS idx_memories_trace ON memories(trace_id)",
     "CREATE INDEX IF NOT EXISTS idx_memories_scenario ON memories(scenario_id)",
     """
