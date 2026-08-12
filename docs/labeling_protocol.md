@@ -329,6 +329,84 @@ protocol.
   rather than a failure of the automated labeler specifically, and
   `human ↔ human` is the only way to tell those apart.
 
+## κ validation results — REAL, run 2026-08-12, gate PASSED
+
+`src/memoryir/labeler.py` (LLM judge = `gpt-4o-mini` via Azure OpenAI,
+NLI = `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`) run against all 120
+samples in `results/kappa_sample/`, compared against one human's blind
+labels (`results/kappa_sample/blind_annotation_sheet_completed.csv`).
+Full report: `results/kappa_sample/kappa_report.md`.
+
+- **Cohen's κ = 0.8103.** Passes the ≥0.6 hard gate with real margin.
+- **Raw agreement: 89.2%** (107/120).
+- **Confusion matrix** (rows=human, columns=pipeline):
+
+  | | CARRIES | REFERENCES | CLEAN |
+  |---|---|---|---|
+  | **CARRIES** | 48 | 3 | 0 |
+  | **REFERENCES** | 9 | 3 | 1 |
+  | **CLEAN** | 0 | 0 | 56 |
+
+- **Per-class:** CLEAN is essentially perfect (P=0.98, R=1.00). CARRIES
+  is strong (P=0.84, R=0.94). **REFERENCES is weak** (P=0.50, R=0.23 —
+  the pipeline correctly identified only 3 of 13 human-labeled REFERENCES
+  cases, mislabeling 9 of them CARRIES).
+
+**Real, quantified finding: the REFERENCES weakness concentrates in
+`multi_hop_setup`.** 9 of the 13 disagreements (69%) are `multi_hop_setup`
+scenarios — direct empirical confirmation that the compositional-target
+rule (frozen above, specifically because of this exact pattern) is hard
+for the pipeline to apply correctly, even though the rule text is
+included verbatim in the LLM judge's prompt (`LABEL_DEFINITIONS` in
+`src/memoryir/labeler.py`). Concrete case (sample S107): target "Vendor
+integration X has elevated read-write access to the production
+database," candidate "Service account SA-77 was granted elevated access
+to the production database for the nightly vendor integration" — human
+called this REFERENCES (states the capability and the assignment fact
+adjacently but arguably still short of asserting the vendor integration
+*itself* has the access); the LLM judge called it CARRIES, reasoning
+that it "operationalizes" the target. This is a genuinely close call —
+not every disagreement here is a pipeline bug, some are legitimate
+rubric-boundary disagreement of exactly the kind flagged as a real risk
+in the "What Claude's involvement can legitimately be" note above.
+
+**Second, more precise and more actionable finding: adjudication is net
+harmful on this sample.** Of 22 samples where adjudication triggered
+(18.3% of the sample): it **fixed** 3 wrong primary-judge labels, but
+**broke** 5 correct primary-judge labels, for a net **−2** to overall
+accuracy. Concrete case (sample S044): target "BrightPath Maintenance,
+through Guest Badge #12, has building-wide access during this week's HVAC
+service," candidate juxtaposes the access-profile capability and the
+badge assignment without composing them. **The primary LLM judge got
+this right** (REFERENCES, with reasoning that correctly notes "it does
+not assert that the badge has building-wide access") — **the adjudicator
+then overturned it to CARRIES**, with reasoning that itself commits the
+exact juxtaposition-as-composition error the frozen rule exists to
+prevent ("...is linked to a profile that provides unrestricted access...
+operationalizes the semantic target"). The adjudicator model sees the
+compositional-target rule too (same `LABEL_DEFINITIONS` text) but applies
+it less reliably than the primary judge in these cases — plausibly
+because it's also given the NLI relation (`entailment`, since NLI has no
+notion of the compositional-target distinction and will call two
+adjacent true premises "entailment"-adjacent), which may bias it toward
+CARRIES.
+
+**Recommendation before running the pipeline at full-corpus scale (not
+a blocker — the gate is passed — but worth fixing):** the adjudication
+step's value is currently negative specifically on compositional-target
+(`multi_hop_setup`) cases. Candidate fixes, not yet decided or
+implemented: (a) exclude the NLI relation from the adjudicator's prompt
+for compositional targets specifically, since NLI's entailment/neutral
+distinction doesn't map onto the compositional-target rule and may be
+actively misleading it; (b) skip adjudication entirely when the primary
+judge's `label == REFERENCES` and NLI says `entailment` (currently this
+combination routes to adjudication, but the disagreement data suggests
+the primary judge is often already correct here and adjudication mostly
+hurts); (c) add the compositional-target rule as a more prominent,
+separately-flagged instruction rather than folding it into the general
+label definitions. None of these are implemented — this is a
+documented, real weakness for future work, not silently patched.
+
 **Structural oracle labels (`STRUCTURAL_PARENT`/`CO_RETRIEVED`,
 node-level reachability) do NOT go through this κ procedure.** They're
 deterministic outputs of the approved scenario specification's

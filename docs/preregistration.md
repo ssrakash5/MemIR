@@ -20,12 +20,17 @@ decision — see `docs/labeling_protocol.md`). Also done 2026-08-12: a v1
 production sweep — see `CLAUDE.md` and `eval/README.md`), run
 successfully (48 real traces, 480+ derived memories), and 8/10 labeling
 worked examples built from that real output (2 categories genuinely
-searched for and not found — a reportable finding, see
-`docs/labeling_protocol.md`). **Status: BLOCKED** — see the closing
-section below for the authoritative blocker list. κ validation has not
-been run, and two scientific-framing questions surfaced by the worked
-examples need resolution before the rubric can be frozen. Sample sizes
-below still need real numbers plugged in.
+searched for and not found — a reportable finding). The two
+scientific-framing questions surfaced by the worked examples (compositional
+CARRIES/REFERENCES rule, `CO_RETRIEVED` redefinition) were resolved the
+same day, freezing the rubric — see `docs/labeling_protocol.md`. **κ
+validation then ran and PASSED (κ=0.8103, 2026-08-12)** — see the closing
+section below for the full status and two documented-but-not-required-fix
+weaknesses (REFERENCES class, adjudication net effect). All three
+original blockers are now closed. Sample sizes below still need real
+numbers plugged in, and this file has not yet been re-committed as the
+timestamped pre-registration — that's a final go/no-go call, not
+automatic just because the blockers cleared.
 **Do not generate experiment data against this version.**
 
 ---
@@ -320,20 +325,37 @@ contamination) for the full distinction. Set notation over blast-radius
     validation" requires an actual human; an AI blind-labeling pass is a
     legitimate supplementary `pipeline ↔ Claude` audit, never blended
     into or substituted for `pipeline ↔ human`.
-14. **Still open, the one real remaining blocker:** κ validation hasn't
-    been run at all. The rubric is now frozen (items 12a/12b resolved)
-    and the harness output exists to draw the 100–150 memory sample
-    from — but the sample hasn't been drawn, and a human still needs to
-    do the blind labeling (not delegable, see item 13).
-15. Once κ validation passes, re-commit with a note marking it as the
-    actual pre-registration timestamp; no data generation before that
-    commit.
+14. ~~κ validation~~ — **RUN AND PASSED 2026-08-12.** 120-memory sample
+    drawn (`eval/draw_kappa_sample.py`, stratified 6 per poison_form ×
+    depth), human blind-labeled it, `src/memoryir/labeler.py` (the frozen
+    LLM-primary + NLI + adjudication pipeline) run against the same
+    samples. **Cohen's κ = 0.8103, raw agreement 89.2%** — well above the
+    ≥0.6 hard gate. Full report: `results/kappa_sample/kappa_report.md`;
+    findings discussion: `docs/labeling_protocol.md`'s "κ validation
+    results" section. Two real, quantified weaknesses found and
+    documented (not hidden by the passing headline number): the
+    REFERENCES class is weak (P=0.50, R=0.23), and the adjudication step
+    is net harmful on this sample (fixed 3 wrong primary labels, broke 5
+    correct ones) — both concentrate in `multi_hop_setup` compositional
+    cases. Recommended fixes listed but **not implemented** — this is a
+    documented known limitation to address before the full-corpus run,
+    not a blocker to committing pre-registration (the gate is passed on
+    its own stated terms).
+15. Once this file is reviewed against the κ results above and judged
+    acceptable, re-commit with a note marking it as the actual
+    pre-registration timestamp; no data generation before that commit.
+    Whether the REFERENCES/adjudication weakness needs fixing *before*
+    that commit, or can be tracked as a documented limitation and fixed
+    before the full run, is a judgment call for the co-author, not
+    something resolved unilaterally here.
 
-**Status: BLOCKED, one blocker remaining (down from three).** Blocker A
-(harness) — closed. Blocker B (worked examples) — closed (8 observed + 2
-honestly-not-found, rubric frozen). Blocker C (κ validation) — still
-fully open, and now unambiguously the critical path: rubric is frozen, so
-this can start as soon as a human draws and blind-labels the sample.
+**Status: rubric frozen, κ validation PASSED. Ready for a final go/no-go
+review, not yet re-committed as the timestamped pre-registration.**
+Blocker A (harness) — closed. Blocker B (worked examples) — closed (8
+observed + 2 honestly-not-found, rubric frozen). Blocker C (κ
+validation) — closed, κ=0.81 passes the gate, with two documented
+weaknesses (REFERENCES class, adjudication net effect) that are
+recommended-but-not-required fixes before scaling to the full run.
 Everything else in this document can continue in parallel, but per the
 original agreed ordering: none of it clears the scientific gate on its
 own.
