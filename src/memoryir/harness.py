@@ -15,6 +15,16 @@ run. Distractor fill count is therefore
 `max(0, top_k - len(all_source_facts))` at depth_1, and
 `max(0, top_k - 2)` at continuation depths (previous child_1 + one
 distractor-derived seed for child_2). See eval/README.md.
+
+child_3 (write_fanout=3, added 2026-08-12 for the full-sweep runner --
+no scenario spec authors a third child, see the AskUserQuestion decision
+recorded in eval/run_full_sweep.py's module docstring): treated as a
+distractor-only sibling at EVERY depth including depth_1, mirroring the
+existing pattern already used for child_2 at continuation depths (a
+distractor entry stands in as its STRUCTURAL_PARENT, distinct from
+child_2's seed so the two siblings aren't derived from identical
+content). This is an extension of an already-frozen pattern, not a new
+oracle-authoring decision.
 """
 from dataclasses import dataclass
 
@@ -39,10 +49,18 @@ def generate_trace(
     conn,
     llm: LLMClient,
     embedder: Embedder,
+    *,
+    trace_id: str | None = None,
 ) -> str:
     scenario_id = spec["scenario_id"]
     prompt_style = spec["prompt_style"]
-    trace_id = f"{scenario_id}__{config.derivation_transform}__seed{config.seed}"
+    if trace_id is None:
+        # Default (scoped v1 harness, eval/run.py): unchanged format, safe
+        # because that script only ever varies scenario/transform/seed at
+        # one fixed (top_k, write_fanout). The full-sweep runner passes an
+        # explicit trace_id that also encodes top_k/write_fanout, since
+        # those now vary too.
+        trace_id = f"{scenario_id}__{config.derivation_transform}__seed{config.seed}"
 
     facts = source_fact_map(spec)
     distractors = spec["distractor_pool"]
@@ -148,6 +166,16 @@ def generate_trace(
     distractor_fill = fill_distractors(exclude=set(), n=n_distractors_needed)
     shared_context_ids = all_source_local_ids + distractor_fill
 
+    # child_3's seed (only when write_fanout>=3): the last distractor in
+    # the pool, distinct from distractor_fill's front-of-pool picks and
+    # from child_2's continuation-depth seeds (which start at index 0) --
+    # explicitly folded into the shared context so all children in this
+    # run still see literally the same retrieved set (shared-retrieval-
+    # per-run is not broken by adding a third child).
+    child3_seed_local_id = distractors[-1]["id"] if config.write_fanout >= 3 else None
+    if child3_seed_local_id is not None and child3_seed_local_id not in shared_context_ids:
+        shared_context_ids = shared_context_ids + [child3_seed_local_id]
+
     derive_and_store(
         depth=1,
         branch="child_1",
@@ -175,12 +203,35 @@ def generate_trace(
             structural_parent_local_ids=child2_true_parents,
         )
 
+    if config.write_fanout >= 3:
+        derive_and_store(
+            depth=1,
+            branch="child_3",
+            context_local_ids=shared_context_ids,
+            structural_parent_local_ids=[child3_seed_local_id],
+        )
+
     # --- depths 2..max_depth: continuation rule ---
     for depth in range(2, config.max_depth + 1):
         seed_distractor_id = distractors[(depth - 2) % len(distractors)]["id"]
-        n_fill = max(0, config.top_k - 2)
-        fill = fill_distractors(exclude={seed_distractor_id}, n=n_fill)
-        context_ids = ["__prev_child1__", seed_distractor_id] + fill
+        child3_seed_id = None
+        if config.write_fanout >= 3:
+            # Offset by half the pool so child_3's seed differs from
+            # child_2's at this depth; fall back to a +1 shift on the rare
+            # collision (small/odd-length pools).
+            child3_seed_id = distractors[(depth - 2 + len(distractors) // 2) % len(distractors)]["id"]
+            if child3_seed_id == seed_distractor_id:
+                child3_seed_id = distractors[(depth - 1) % len(distractors)]["id"]
+
+        exclude = {seed_distractor_id}
+        if child3_seed_id is not None:
+            exclude.add(child3_seed_id)
+        n_fill = max(0, config.top_k - len(exclude) - 1)  # -1 for __prev_child1__
+        fill = fill_distractors(exclude=exclude, n=n_fill)
+        context_ids = ["__prev_child1__", seed_distractor_id]
+        if child3_seed_id is not None:
+            context_ids.append(child3_seed_id)
+        context_ids += fill
 
         derive_and_store(
             depth=depth,
@@ -203,6 +254,14 @@ def generate_trace(
                 branch="child_2",
                 context_local_ids=context_ids,
                 structural_parent_local_ids=[seed_distractor_id],
+            )
+
+        if config.write_fanout >= 3:
+            derive_and_store(
+                depth=depth,
+                branch="child_3",
+                context_local_ids=context_ids,
+                structural_parent_local_ids=[child3_seed_id],
             )
 
     return trace_id

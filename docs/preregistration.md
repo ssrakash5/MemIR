@@ -112,16 +112,16 @@ generation/analysis split.
   independently-constructed scenarios each — the real sampling unit, see
   §4/§5), `top_k` {1,3,5,10}, `write_fanout` {1,2,3}, `derivation_transform`
   (4 values, matching MemLineage §5.3's summarize/paraphrase/refine/continue
-  vocabulary), `seeds` {0,1,2}. `prompt_style` (terse/verbose/structured —
+  vocabulary), `seeds` {0,1,2,3,4} (RESOLVED 2026-08-12, 3→5 — see §4). `prompt_style` (terse/verbose/structured —
   renamed from `summarization_prompt`) is a **balanced per-scenario
   attribute** (2 of each style's 6 scenarios get each `prompt_style` value),
-  not a crossed factorial axis. **3,456 generated traces**
-  (24×4×3×4×3).
+  not a crossed factorial axis. **5,760 generated traces**
+  (24×4×3×4×5).
 - **Analysis factors** (computed post-hoc from a trace's persisted
   `(parent, child, attribution_score, run_id)` edges, no re-generation
   needed): `depth` {0..5}, `attribution_threshold` {null, 0.5, 0.7, 0.85},
-  `containment_policy` {flat_transitive, depth_aware}. **82,944 depth ×
-  threshold analysis cells** derivable from the 3,456 traces (3,456×6×4);
+  `containment_policy` {flat_transitive, depth_aware}. **138,240 depth ×
+  threshold analysis cells** derivable from the 5,760 traces (5,760×6×4);
   containment policy is a further analysis layer on top of that.
 - **Generation controls:** `max_depth=5` as a hard external harness stop
   condition NOT exposed to the agent's prompt. The prefix property this
@@ -167,19 +167,61 @@ the pseudo-replication risk: seeds now measure within-scenario model/run
 stochasticity, and generalization across independently constructed attack
 instances of a style is what the 6-scenario replication is for.
 
-**Still not fully determined:**
+**Replication (seeds per scenario-condition) — RESOLVED 2026-08-12, this
+was the last item this section left open at stamp time.** The arithmetic
+that closed it: the bootstrap unit is `scenario_id` (§5), and seeds /
+`derivation_transform` are averaged within each scenario-condition
+*before* resampling — so the real inferential N is 24 (6/`poison_form`)
+regardless of how many seeds are run. Pooled SE ≈ σ/√24 ≈ 0.20σ;
+per-`poison_form` SE ≈ σ/√6 ≈ 0.41σ. These are approximate (assume a
+plausible σ, not an empirically established one) but sufficient to
+establish the qualitative fact that decided this: **scenario diversity,
+not trace replication, is what limits statistical resolution here.**
+Consequences:
+
+- **Primary inference is the 24-scenario pooled estimand for H1–H4.**
+  Per-`poison_form` panels (n=6 each) are still reported — they may show
+  real qualitative differences (e.g. `multi_hop_setup` behaving
+  differently) — but as a **descriptive/exploratory stratified analysis
+  with CIs shown**, not as independently-powered comparisons. Language
+  like "`multi_hop_setup` is significantly worse than `direct_instruction`"
+  is not licensed by this design; hundreds of underlying traces per stratum
+  must not be allowed to make an n=6 comparison look more powered than it
+  is.
+- **Seeds: 3 → 5**, justified purely as within-scenario noise reduction
+  in a pipeline with empirically confirmed `temperature=0` API
+  non-determinism (the κ run 2a/2b discrepancy, `docs/labeling_protocol.md`)
+  — not as a bid for more statistical power, which seed count cannot
+  provide given the bootstrap unit is `scenario_id`. Three rules frozen
+  alongside this decision (mirrored in `configs/experiment_grid.yaml`):
+  1. The same five predetermined seed IDs (0,1,2,3,4) are used for every
+     applicable condition — no rerunning a cell because an output looks
+     odd.
+  2. All five are averaged within scenario-condition before any
+     inferential resampling — resampling still sees 24 scenario units,
+     never 120 "independent" observations.
+  3. Five is frozen after this decision. A genuine failed API call/retry
+     is not a sixth statistical replicate.
+- **Effective inferential n: 24, not 120 (5×24) and not the raw trace
+  count (5,760).**
+
+This resolves §4's last open item as of the stamp — a scaling/replication
+decision made under the already-stamped scientific design (hypotheses,
+corpus, rubric, grid factors), not a reopening of that stamp. No further
+sample-size decision remains open; generation may proceed.
+
+**Still not fully determined (lower priority, not blocking generation):**
 - The distractor-per-run design (how many true parents vs. distractors per
   retrieval within each scenario's `distractor_pool` — this directly sets
   how hard the precision problem is, so it needs to be a deliberate
-  choice per scenario, not incidental).
-- ~~The pilot's 4 scenario specifications don't exist yet~~ — **done and
-  HUMAN-APPROVED 2026-08-11** (`configs/scenarios/pilot/`). The remaining
-  20 (5 more per `poison_form`) still need to be written before the full
-  24-scenario generation run.
+  choice per scenario, not incidental). This is already governed
+  mechanically by the frozen "true-parents-rank-first" rule in
+  `configs/experiment_grid.yaml`, so is more a documentation cleanup than
+  an open design question.
 - Target scale from `docs/labeling_protocol.md`: ≥200 injection instances
   across ≥4 styles, chains to depth ≥3 — a floor for the *labeling
   validation* corpus specifically, distinct from and smaller than the
-  24-scenario / 3,456-trace generation design (see that document's
+  24-scenario / 5,760-trace generation design (see that document's
   clarification of this distinction).
 
 ## 5. Statistics
@@ -190,8 +232,13 @@ instances of a style is what the 6-scenario replication is for.
 - **Bootstrap resampling unit is `scenario_id`, stratified by
   `poison_form`, not raw factorial cells or trace rows** — seeds
   within one scenario are nested repeated measurements, not independent
-  samples; resampling 3,456 trace rows as though independent would be
+  samples; resampling 5,760 trace rows as though independent would be
   pseudo-replication.
+- **Reporting hierarchy (RESOLVED 2026-08-12, §4): pooled-across-24
+  estimates are primary for H1–H4; `poison_form`-stratified panels
+  (n=6 each) are descriptive/exploratory only, reported with CIs, never
+  as independently-powered claims.** See §4 for the SE arithmetic this
+  is based on.
 - **Marginalization rule (preregistered estimand — balanced marginal
   means over the experimental distribution we defined, NOT real-world
   deployment prevalence):** average seeds within each scenario-condition
@@ -361,6 +408,14 @@ contamination) for the full distinction. Set notation over blast-radius
 **Status: STAMPED.** All three original blockers closed: Blocker A
 (harness), Blocker B (worked examples, rubric frozen), Blocker C (κ
 validation, revised once for a real cause, passed with margin on the
-final design). Data generation is unblocked as of this commit. Sample
-sizes for the full run (§4) remain an open scaling decision — resolving
-that does not require reopening this stamp.
+final design). Data generation is unblocked as of this commit.
+
+16. ~~Full-run sample size / replication (§4)~~ — **RESOLVED 2026-08-12,
+    same day as the stamp, as a scaling decision under the already-stamped
+    design, not a reopening of it.** Seeds 3→5 (within-scenario noise
+    reduction only, justified by confirmed `temperature=0` API
+    non-determinism), effective inferential n remains 24 (scenario_id,
+    the bootstrap unit), pooled-across-24 estimates set as primary for
+    H1–H4 with `poison_form` panels (n=6) as descriptive/exploratory only.
+    Full record and the SE arithmetic behind it: §4. No sample-size
+    decision remains open. Generation may proceed.

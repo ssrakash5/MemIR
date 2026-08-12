@@ -39,7 +39,7 @@ PROMPT_STYLE_INSTRUCTIONS = {
 
 
 class LLMClient:
-    def __init__(self):
+    def __init__(self, *, log_dir: Path | None = None):
         load_dotenv(CREDS_PATH)
         self._client = AzureOpenAI(
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
@@ -47,7 +47,10 @@ class LLMClient:
             api_version=os.environ["AZURE_OPENAI_MINI_API_VERSION"],
         )
         self.deployment = os.environ["AZURE_OPENAI_MINI_DEPLOYMENT_NAME"]
-        self._log_dir = REPO_ROOT / "results" / "eval_llm_log"
+        # log_dir override lets concurrent full-sweep workers each get
+        # their own subdirectory (avoids call_00001.json filename
+        # collisions across LLMClient instances sharing one directory).
+        self._log_dir = log_dir or (REPO_ROOT / "results" / "eval_llm_log")
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._call_count = 0
 

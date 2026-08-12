@@ -55,6 +55,29 @@ SCHEMA_STATEMENTS = [
     """,
     "CREATE INDEX IF NOT EXISTS idx_influence_trace ON memory_influence(trace_id)",
     "CREATE INDEX IF NOT EXISTS idx_influence_child ON memory_influence(child_memory_id)",
+    # Full-sweep checkpoint tracking (added 2026-08-12). One row per
+    # enumerated (scenario_id, top_k, write_fanout, derivation_transform,
+    # seed) trace key -- the durable resume/dedup mechanism for
+    # eval/run_full_sweep.py. `attempts` counts retries of the SAME trace
+    # key/seed (never an extra statistical replicate -- see
+    # docs/preregistration.md SS4's frozen seed rules).
+    """
+    CREATE TABLE IF NOT EXISTS sweep_runs (
+        trace_id TEXT PRIMARY KEY,
+        scenario_id TEXT NOT NULL,
+        top_k INT NOT NULL,
+        write_fanout INT NOT NULL,
+        derivation_transform TEXT NOT NULL,
+        seed INT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending'
+            CHECK (status IN ('pending', 'running', 'done', 'failed', 'error_exhausted')),
+        attempts INT NOT NULL DEFAULT 0,
+        last_error TEXT,
+        claimed_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_sweep_runs_status ON sweep_runs(status)",
 ]
 
 
@@ -101,6 +124,83 @@ def insert_memory(
         ),
     ).fetchone()
     return row[0]
+
+
+def seed_sweep_runs(conn: psycopg.Connection, cells: list[dict]) -> None:
+    """Upsert every enumerated trace key as 'pending', preserving existing
+    rows' status (ON CONFLICT DO NOTHING) -- safe to call on every launch,
+    including resumes, without touching already-done/failed rows."""
+    with conn.cursor() as cur:
+        for c in cells:
+            cur.execute(
+                """
+                INSERT INTO sweep_runs
+                    (trace_id, scenario_id, top_k, write_fanout, derivation_transform, seed)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (trace_id) DO NOTHING
+                """,
+                (c["trace_id"], c["scenario_id"], c["top_k"], c["write_fanout"],
+                 c["derivation_transform"], c["seed"]),
+            )
+
+
+def reset_stuck_running(conn: psycopg.Connection) -> int:
+    """Any row still 'running' at process start belongs to a crashed prior
+    process -- reset to 'pending' so it's reclaimed (and its partial rows
+    wiped by delete_trace_rows before regeneration, see run_full_sweep.py)."""
+    row = conn.execute(
+        "UPDATE sweep_runs SET status='pending' WHERE status='running' RETURNING trace_id"
+    ).fetchall()
+    return len(row)
+
+
+def claim_trace(conn: psycopg.Connection, trace_id: str, *, max_attempts: int) -> bool:
+    """Atomically claim one trace for this worker. Returns False if it's
+    already done, already claimed by another worker, or has exhausted
+    max_attempts (marked 'error_exhausted' and left for manual review)."""
+    row = conn.execute(
+        """
+        UPDATE sweep_runs
+        SET status='running', claimed_at=now(), attempts=attempts+1
+        WHERE trace_id=%s AND status IN ('pending','failed') AND attempts < %s
+        RETURNING trace_id
+        """,
+        (trace_id, max_attempts),
+    ).fetchone()
+    if row is None:
+        conn.execute(
+            "UPDATE sweep_runs SET status='error_exhausted' "
+            "WHERE trace_id=%s AND status='failed' AND attempts >= %s",
+            (trace_id, max_attempts),
+        )
+    return row is not None
+
+
+def mark_done(conn: psycopg.Connection, trace_id: str) -> None:
+    conn.execute(
+        "UPDATE sweep_runs SET status='done', completed_at=now() WHERE trace_id=%s",
+        (trace_id,),
+    )
+
+
+def mark_failed(conn: psycopg.Connection, trace_id: str, error: str) -> None:
+    conn.execute(
+        "UPDATE sweep_runs SET status='failed', last_error=%s WHERE trace_id=%s",
+        (error[:4000], trace_id),
+    )
+
+
+def delete_trace_rows(conn: psycopg.Connection, trace_id: str) -> None:
+    """Wipe any partial rows from a prior crashed/failed attempt at this
+    exact trace_id before regenerating -- makes retry idempotent instead
+    of accumulating duplicate memory rows."""
+    conn.execute("DELETE FROM memory_influence WHERE trace_id=%s", (trace_id,))
+    conn.execute("DELETE FROM memories WHERE trace_id=%s", (trace_id,))
+
+
+def sweep_status_counts(conn: psycopg.Connection) -> dict:
+    rows = conn.execute("SELECT status, count(*) FROM sweep_runs GROUP BY status").fetchall()
+    return dict(rows)
 
 
 def insert_influence_edges(

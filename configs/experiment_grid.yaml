@@ -14,13 +14,39 @@
 # this revision.
 #
 # Generated traces: 24 scenarios x 4 top_k x 3 write_fanout
-#                    x 4 derivation_transform x 3 seeds = 3,456
+#                    x 4 derivation_transform x 5 seeds = 5,760
 # (down from the previous revision's 1,728 x 3 prompt_style values = would
 # have been 5,184 if prompt_style had stayed crossed; treating it as a
 # scenario attribute instead avoids inflating trace count for a factor
 # that doesn't need full crossing.)
 # Depth x threshold analysis cells derivable from those traces:
-#   3,456 x 6 x 4 = 82,944. Containment_policy is a further post-hoc layer.
+#   5,760 x 6 x 4 = 138,240. Containment_policy is a further post-hoc layer.
+#
+# SEEDS RESOLVED 2026-08-12 (3 -> 5, closing the last item preregistration.md
+# SS4 left explicitly open at stamp time -- see that document's SS4 for the
+# full resolution record): the inferential bootstrap unit is scenario_id
+# (24, stratified 6/poison_form -- see SS5 below), not seeds or traces.
+# Seeds/derivation_transform are averaged within each scenario-condition
+# BEFORE resampling, so no seed count increases the real N of 24. The
+# arithmetic that closed this: pooled SE ~= sigma/sqrt(24) ~= 0.20*sigma;
+# per-poison_form SE ~= sigma/sqrt(6) ~= 0.41*sigma -- scenario diversity,
+# not trace replication, is what limits resolution. 5 seeds is purely a
+# within-scenario noise-reduction move, justified by the empirically
+# observed temperature=0 API non-determinism during kappa validation
+# (docs/labeling_protocol.md), NOT a bid for more statistical power.
+# THREE RULES, FROZEN ALONGSIDE THIS DECISION:
+#   1. The same five predetermined seed IDs (0,1,2,3,4) are used for every
+#      applicable condition -- no rerunning a cell because an output looks
+#      odd.
+#   2. All five are averaged within scenario-condition before any
+#      inferential (bootstrap) resampling -- resampling still sees 24
+#      scenario units, never 120 "independent" observations.
+#   3. Five is frozen after this decision. A genuine failed API call/retry
+#      is not a sixth statistical replicate -- do not opportunistically add
+#      further realizations.
+# Cost re-estimate (proportional scale-up from the measured 3-seed figures
+# below, not a fresh measurement): ~5/3 x $5.33 ~= $8.9 total. Still
+# trivial; this was a statistical-resolution decision, not a cost one.
 #
 # Pilot: 8 generated traces -- one scenario per poison_form (4 of the
 # 24), top_k=5, write_fanout=2, 2 of the 4 derivation_transforms, seed=0.
@@ -58,11 +84,10 @@
 # planned analysis). This is exactly the same principle already applied
 # to scenario_id above (replication, not coverage, is the lever to cut).
 #
-# STILL OPEN (this is the one real remaining design decision before
-# committing to full-corpus generation -- see docs/preregistration.md
-# SS4): how many replicates per cell. Resolve this BEFORE revisiting grid
-# size again -- it determines whether 3,456 traces (at 3 seeds/cell) is
-# right-sized coverage or oversampling, which can't be judged aesthetically.
+# RESOLVED 2026-08-12: replicates per cell = 5 seeds (see the dated block
+# above). This was the one remaining design decision before committing to
+# full-corpus generation (docs/preregistration.md SS4). No further
+# sample-size decision is open -- generation may proceed.
 
 generation_factors:
   scenario_id: SEE_SCENARIO_DESIGN_BELOW  # 24 scenarios; see "Scenario design" section
@@ -73,9 +98,11 @@ generation_factors:
     - paraphrase
     - refine
     - continue
-  seeds: [0, 1, 2]                    # model/run stochasticity WITHIN a scenario --
+  seeds: [0, 1, 2, 3, 4]              # RESOLVED 2026-08-12: 3 -> 5, see dated block above.
+                                       # Model/run stochasticity WITHIN a scenario --
                                        # generalization ACROSS scenarios of a style is what
                                        # scenario_id (6 replicates/style) is for, not seeds.
+                                       # FROZEN: these exact 5 IDs, no ad hoc additions.
 
 generation_controls:
   max_depth: 5                        # hard external harness stop condition -- MUST NOT be
