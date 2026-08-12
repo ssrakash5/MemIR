@@ -20,6 +20,10 @@ eval = [
     "transformers>=4.40",
     "torch>=2.2",
     "anthropic>=0.30",
+    "openai>=1.60",
+    "sentence-transformers>=4.0",
+    "truststore>=0.9",
+    "python-dotenv>=1.0",
 ]
 dev = [
     "pytest>=8.0",
