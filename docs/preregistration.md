@@ -8,16 +8,15 @@ sampling/bootstrap unit, `prompt_style` demoted to a balanced per-scenario
 attribute, and oracle authoring resolved to programmatic generation from a
 human-approved scenario spec. `depth`/`attribution_threshold` remain
 analysis-time factors, now validated by `spike/06_prefix_property.py`
-(GREEN). The pilot's 4 scenario specs (one per `poison_form`) are now
-**HUMAN-APPROVED** (`configs/scenarios/pilot/`, approved 2026-08-11); the
-remaining 20 are now **drafted but NOT yet approved**
-(`configs/scenarios/`, drafted 2026-08-12 in 4 batches — see that
-directory's README for per-batch detail and self-audit notes). All 24
-scenario files exist and validate as YAML; only 4 of 24 have been through
-human ground-truth review. Also RESOLVED 2026-08-12: the automated
-labeler pipeline (LLM-primary + NLI verification + adjudication, marker
-tokens excluded from the label decision — see
-`docs/labeling_protocol.md`). Still not ready to gate data generation: κ
+(GREEN). **All 24 scenario specs are now HUMAN-APPROVED** (4 pilot,
+approved 2026-08-11; 20 more, drafted and reviewed 2026-08-12 — 12
+approved as drafted, 8 revised for semantic-target wording and
+distractor/clean-sibling contamination, zero `true_parents` errors found
+— see `configs/scenarios/README.md` for full detail). Also RESOLVED
+2026-08-12: the automated labeler pipeline (LLM-primary + NLI
+verification + adjudication, marker tokens excluded from the label
+decision — see `docs/labeling_protocol.md`). Still not ready to gate
+data generation: κ
 validation hasn't run, the 20 new scenarios aren't approved, and sample
 sizes below still need the real numbers plugged in once the pilot runs.
 **Do not generate experiment data against this version.**
@@ -205,16 +204,15 @@ first 2026-08-11 revision):
 5. ~~`scenario_id`/pseudo-replication question, oracle-authoring method~~ —
    RESOLVED 2026-08-11: 24 scenarios, programmatic oracle generation from
    human-approved specs.
-6. ~~The 24 scenario specifications don't exist yet~~ — **all 24 now
-   exist.** Pilot's 4 HUMAN-APPROVED 2026-08-11 (`configs/scenarios/pilot/`),
-   including a full ground-truth review pass that corrected `true_parents`
-   to the minimal causally-necessary set in 3/4. Remaining 20 drafted
-   2026-08-12 in 4 batches (`configs/scenarios/`), applying the same
-   corrected principle from the start plus a self-audit that caught and
-   fixed several distractors echoing the poison's own vocabulary
-   (`multi_hop_setup` batch especially — see that directory's README).
-   **Still open: none of the 20 are human-approved yet** — full review
-   required before any generation run treats them as ground truth.
+6. ~~The 24 scenario specifications don't exist yet~~ / ~~the 20 aren't
+   approved~~ — **all 24 are now HUMAN-APPROVED.** Pilot's 4 approved
+   2026-08-11, including the review pass that corrected `true_parents` to
+   the minimal causally-necessary set in 3/4. Remaining 20 drafted and
+   reviewed 2026-08-12: 12 approved as drafted, 8 revised (semantic-target
+   wording, distractor/clean-sibling contamination) — **zero
+   `true_parents` errors found in the 20**, confirming the ground-truth
+   principle transferred correctly to fresh scenario construction. See
+   `configs/scenarios/README.md` for full per-scenario detail.
 7. ~~Automated labeler combination rule~~ — RESOLVED 2026-08-12:
    LLM-primary + NLI verification + adjudication, marker tokens excluded
    from the label decision entirely (see `docs/labeling_protocol.md`).
@@ -223,6 +221,6 @@ first 2026-08-11 revision):
 8. ~~MPBench, AgentPoison, MINJA full reads~~ — done 2026-08-12; the
    entire `week1_execution_plan.md` §1 literature gate is closed (see
    `docs/prior_art.md`).
-9. Once the 20 new scenarios are reviewed/approved and κ validation
-   passes, re-commit with a note marking it as the actual pre-registration
+9. ~~20 new scenarios reviewed/approved~~ — done 2026-08-12. Once κ
+   validation passes, re-commit with a note marking it as the actual pre-registration
    timestamp; no data generation before that commit.

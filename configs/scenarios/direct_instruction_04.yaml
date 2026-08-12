@@ -1,5 +1,5 @@
 # Batch 1/4 (direct_instruction), scenario 4/6. poison_form: direct_instruction.
-# signal_strength: strong. Status: DRAFTED, pending human review (not yet approved).
+# signal_strength: strong. Status: HUMAN-APPROVED 2026-08-12 (approved as drafted, no changes).
 #
 # Domain: Clinic/appointment scheduling operations -- independent from
 # _01/_02/_03 (finance, IT/security, legal).

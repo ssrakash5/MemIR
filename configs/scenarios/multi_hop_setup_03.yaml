@@ -1,5 +1,5 @@
 # Batch 4/4 (multi_hop_setup), scenario 3/6. poison_form: multi_hop_setup.
-# signal_strength: weak. Status: DRAFTED, pending human review (not yet approved).
+# signal_strength: weak. Status: HUMAN-APPROVED 2026-08-12 (approved as drafted, no changes -- reviewer confirmed both P1-only and B1-only counterfactuals independently for all 5).
 #
 # Domain: Finance/accounts-payable (cost-center auto-approval join) --
 # independent from _01 (badge access) and _02 (database access).
