@@ -16,16 +16,28 @@ and how this question was arrived at.)
 
 ## Status
 
-Week 1 (2026-08-10 – 2026-08-16): design and de-risking only. See
-`week1_execution_plan.md` at the repo root's parent directory for the current
-plan, `CLAUDE.md` for agent-facing standing context, and `docs/` for the
-research design documents as they land.
+Pre-registration STAMPED 2026-08-12 (`docs/preregistration.md`). Full
+generation + labeling pipeline complete across 3 models
+(gpt-4o-mini, gpt-4o, Llama-3.3-70B-Instruct), 30 scenarios (24 poisoned
++ 6 clean controls), H1–H4 all computed with bootstrap CIs against the
+full corpus — see `docs/corpus_card.md` for corpus statistics and
+`docs/paper/` for the in-progress draft (intro/related work/threat
+model/method/limitations drafted; results section pending final
+clean-control numbers). `CLAUDE.md` has agent-facing standing context
+and the frozen-artifacts list.
 
 ## Layout
 
-- `docs/` — prior art, positioning, labeling protocol, pre-registration
-- `src/memoryir/` — core library (db, embeddings, provenance, lineage)
+- `docs/` — prior art, positioning, labeling protocol, pre-registration,
+  corpus card, paper drafts (`docs/paper/`)
+- `src/memoryir/` — core library (db, embeddings, harness, labeler,
+  metrics, scenarios)
 - `spike/` — throwaway infra-verification scripts (not product code)
-- `eval/` — experiment harness (week 2+)
-- `configs/` — experiment grid and run configs
-- `results/` — experiment outputs (git-ignored except summaries)
+- `eval/` — generation/labeling/metrics runners (`run_full_sweep.py`,
+  `label_full_corpus.py`, `compute_metrics.py`, `compute_h2/h3/h4_metrics.py`)
+- `tests/` — fixture tests (metrics validated against known answers
+  before touching real data)
+- `configs/` — experiment grid (dated decisions recorded inline) and
+  scenario specs
+- `results/` — experiment outputs (git-ignored except curated summaries
+  like `results/kappa_sample/`)
