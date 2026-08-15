@@ -123,6 +123,29 @@ def test_thresholded_missing_score_is_pruned_not_kept():
     assert flagged == set(), flagged  # every edge missing a score -> pruned, not defaulted-open
 
 
+def test_flat_transitive_matches_context_exposure():
+    g = _fixture_graph()
+    assert b_flagged(g, policy="flat_transitive", max_depth=2) == \
+        b_flagged(g, policy="context_exposure", max_depth=2) == {2, 3, 4, 5}
+
+
+def test_depth_aware_prunes_far_co_retrieved_but_keeps_near():
+    g = _fixture_graph()
+    # window=1: only depth-1 CO_RETRIEVED trusted (node 3), depth-2 CO_RETRIEVED
+    # (node 5, from node 2) pruned since node 2 is outside the window's "near"
+    # reachability boundary for further conservative expansion.
+    flagged_w1 = b_flagged(g, policy="depth_aware", max_depth=2, depth_aware_window=1)
+    assert flagged_w1 == {2, 3, 4}, flagged_w1  # 5 pruned (reached only via CO_RETRIEVED beyond window)
+
+    # window=2: node 5 is within the window now, so it's trusted too -- same as flat_transitive here
+    flagged_w2 = b_flagged(g, policy="depth_aware", max_depth=2, depth_aware_window=2)
+    assert flagged_w2 == {2, 3, 4, 5}, flagged_w2
+
+    # depth_aware(window=1) must never flag MORE than flat_transitive
+    flat = b_flagged(g, policy="flat_transitive", max_depth=2)
+    assert flagged_w1 <= flat
+
+
 def test_cycle_terminates():
     """week2.md's mandatory cycle test: a deliberately cyclic graph must
     not hang reachable_from()."""

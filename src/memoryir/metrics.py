@@ -98,18 +98,62 @@ def build_adjacency_thresholded(
     return adj
 
 
-def b_flagged(graph: TraceGraph, *, policy: str, max_depth: int, threshold: float | None = None) -> set[int]:
+def _reachable_capped(graph: TraceGraph, allowed_roles: set[str], depth_cap: int | None) -> set[int]:
+    """Forward reachability using only `allowed_roles` edges, but never
+    traversing INTO a node whose depth exceeds depth_cap (None = no cap)."""
+    adj: dict[int, list[int]] = {}
+    for pid, cid, role in graph.edges:
+        if role not in allowed_roles:
+            continue
+        if depth_cap is not None and graph.nodes.get(cid, {}).get("depth", 0) > depth_cap:
+            continue
+        adj.setdefault(pid, []).append(cid)
+    return reachable_from(graph.root_id, adj)
+
+
+def b_flagged(graph: TraceGraph, *, policy: str, max_depth: int, threshold: float | None = None,
+              depth_aware_window: int = 2) -> set[int]:
     """A policy's flagged set -- computed WITHOUT looking at content_label
-    (a real detector doesn't have ground truth), only graph structure."""
+    (a real detector doesn't have ground truth), only graph structure.
+
+    depth_aware (H4, added 2026-08-14, DATED DECISION -- flat_transitive
+    and depth_aware were named in the frozen grid as "one baseline, one
+    proposed method" without a concrete algorithm for the latter):
+    operationalized as conservative context-exposure propagation (both
+    edge roles) within `depth_aware_window` hops of the compromised root,
+    then STRUCTURAL_PARENT-only beyond that window -- trusting broad
+    co-retrieval taint near the compromise point (where over-tainting
+    risk is contained) while requiring confirmed lineage further out
+    (where broad taint would compound). Reduces over-quarantine relative
+    to flat_transitive (unconditional context-exposure to full depth) at
+    a recall cost -- exactly the tradeoff H4 asks to characterize, not
+    assume."""
     if policy == "thresholded":
         if threshold is None or graph.edge_scores is None:
             raise ValueError("thresholded policy requires threshold and graph.edge_scores")
         adj = build_adjacency_thresholded(graph.edges, graph.edge_scores, threshold)
+        reached = reachable_from(graph.root_id, adj)
+    elif policy == "flat_transitive":
+        reached = _reachable_capped(graph, {"STRUCTURAL_PARENT", "CO_RETRIEVED"}, depth_cap=None)
+    elif policy == "depth_aware":
+        near = _reachable_capped(graph, {"STRUCTURAL_PARENT", "CO_RETRIEVED"}, depth_cap=depth_aware_window)
+        far_adj: dict[int, list[int]] = {}
+        for pid, cid, role in graph.edges:
+            if role != "STRUCTURAL_PARENT":
+                continue
+            far_adj.setdefault(pid, []).append(cid)
+        # Expand structurally from every node already reached within the window
+        # (mirrors a responder who broadly quarantines near the incident, then
+        # switches to lineage-only tracing further out).
+        far_reached: set[int] = set()
+        for start in near:
+            far_reached |= reachable_from(start, far_adj)
+        reached = near | far_reached
     else:
         allowed = {"structural": {"STRUCTURAL_PARENT"},
                    "context_exposure": {"STRUCTURAL_PARENT", "CO_RETRIEVED"}}[policy]
         adj = build_adjacency(graph.edges, allowed)
-    reached = reachable_from(graph.root_id, adj)
+        reached = reachable_from(graph.root_id, adj)
     return {nid for nid in reached if graph.nodes.get(nid, {}).get("depth", 0) <= max_depth
             and graph.nodes[nid]["depth"] >= 1}
 
