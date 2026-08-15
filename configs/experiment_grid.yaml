@@ -19,6 +19,18 @@
 #                    (5,760 per model; gpt-4o-mini's 5,760 already done
 #                    before this factor was added -- see the `model`
 #                    factor's note above)
+#
+# CLEAN-CONTROL EXTENSION (2026-08-14, explicit user decision): 6 new
+# scenarios added (configs/scenarios/clean_control_01..06.yaml),
+# poison_form=clean_control -- no adversarial content anywhere in any of
+# them; semantic_target in each describes a plausible-but-never-injected
+# harmful claim (verified non-composable: no distinctive identifier from
+# the target appears in that scenario's source facts/distractors, only
+# expected topical vocabulary overlap). This is the false-positive
+# baseline week3.md/week4.md call for and the original design lacked --
+# closes that gap. New scenario count: 30 (24 poisoned + 6 clean).
+# New total: 30 x 3 x 4 x 3 x 4 x 5 = 21,600 traces (17,280 already done
+# for the 24 poisoned scenarios + 4,320 new for the 6 clean controls).
 # (down from the previous revision's 1,728 x 3 prompt_style values = would
 # have been 5,184 if prompt_style had stayed crossed; treating it as a
 # scenario attribute instead avoids inflating trace count for a factor
@@ -94,7 +106,7 @@
 # sample-size decision is open -- generation may proceed.
 
 generation_factors:
-  scenario_id: SEE_SCENARIO_DESIGN_BELOW  # 24 scenarios; see "Scenario design" section
+  scenario_id: SEE_SCENARIO_DESIGN_BELOW  # 30 scenarios (24 poisoned + 6 clean_control, 2026-08-14); see "Scenario design" section
   model: [gpt-4o-mini, gpt-4o, llama-3.3-70b]
     # RESOLVED 2026-08-12 (cross-model extension, explicit user decision,
     # post-stamp): resolves the previously-TBD `model` field below.
@@ -151,6 +163,15 @@ generation_controls:
 # individual factorial cells and NOT poison_form alone. Bootstrap CIs
 # (docs/preregistration.md SS5) resample scenario_id, stratified by
 # poison_form.
+#
+# CLEAN-CONTROL ADDITION (2026-08-14): a 5th poison_form value,
+# clean_control (6 scenarios, configs/scenarios/clean_control_01..06.yaml)
+# -- NOT crossed with the strong/weak signal stratification below (it has
+# no signal at all, by construction). Excluded from H1-H4's primary
+# pooled/stratified analyses (those are about detecting REAL
+# contamination); used exclusively for the false-positive baseline
+# (results/metrics/clean_control_false_positive.csv once computed).
+# scenario_id total is now 30 (24 poisoned + 6 clean).
 #
 # poison_form values: direct_instruction, embedded_fact,
 # authoritative_framing, multi_hop_setup. RENAMED from injection_style
