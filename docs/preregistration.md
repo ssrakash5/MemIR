@@ -75,6 +75,25 @@ conceptual distinction this rests on.
   collapsed "best threshold" scalar, and explicitly check whether
   thresholding drops recall on cases structurally analogous to worked
   example 8.
+
+  **Attribution score, RESOLVED 2026-08-14 (dated decision):** the
+  frozen grid named `attribution_threshold` without ever defining a
+  continuous per-edge score to threshold — the harness only recorded
+  categorical `STRUCTURAL_PARENT`/`CO_RETRIEVED` roles. Operationalized
+  as cosine similarity between the parent and child memory's embedding
+  (both already stored via pgvector at generation time by the same
+  fixed sentence-transformers model regardless of which LLM generated
+  the content — no new generation required). This is an explicit,
+  stated choice analogous to MemLineage's own similarity-threshold
+  mechanism, not the only defensible one; revisiting it is a rubric-level
+  change requiring the usual dated deviation entry. Implementation:
+  `src/memoryir/metrics.py`'s `thresholded` policy,
+  `eval/compute_h2_metrics.py`. **Result: a real frontier, not a
+  collapsed scalar** — at threshold 0.5, recall stays high (0.98–0.997)
+  with moderate precision (0.89–0.96); at 0.85, recall drops sharply to
+  0.62–0.74 across all 3 models, confirming H2's concern that aggressive
+  thresholding prunes exactly the `CO_RETRIEVED`-only recall worked
+  example 8 depends on. Full table: `results/metrics/h2_headline_summary.csv`.
 - **H3 — Surface vs. execution-provenance traceability (NON-DIRECTIONAL,
   revised 2026-08-12).** Characterize how surface-level (marker-token)
   traceability and structural-lineage traceability diverge across
@@ -92,6 +111,30 @@ conceptual distinction this rests on.
   experiment uses materially different models, temperatures, or prompts
   than this pilot, that scope difference must be stated explicitly next
   to any laundering-rate claim.
+
+  **UPDATE 2026-08-14, full-scale result (not a silent revision — both
+  numbers reported together, per the deviation-log protocol):** the pilot's
+  zero-laundering finding did NOT hold at full corpus scale. Across all
+  84,177 CARRIES-labeled memories in the 3-model, 17,250-trace corpus,
+  the measured laundering rate is **0.79% (662 memories)** — small, but
+  real and non-uniform. It concentrates almost entirely in the
+  `continue` and `paraphrase` derivation transforms (near-zero for
+  `summarize`/`refine` across all 3 models, matching the pilot's original
+  observation for those transforms specifically). The clearest signal is
+  a real cross-model asymmetry: **Llama-3.3-70B's `paraphrase` output
+  launders at 4.7%–5.9% by depth 2–5**, versus consistently 0% for
+  gpt-4o and gpt-4o-mini's `paraphrase` output. gpt-4o-mini's `continue`
+  transform also launders at a measurable, roughly depth-stable rate
+  (1.0%–2.2%). This is exactly the kind of result H3's non-directional
+  framing exists to let stand as reported, not retrofitted into a
+  direction: laundering is real, rare, transform-dependent, and — newly
+  — model-dependent in a way the single-model pilot could not have shown.
+  Full per-model/per-transform/per-depth table:
+  `results/metrics/h3_laundering_summary.csv` (methodology:
+  `eval/compute_h3_metrics.py`, marker extraction:
+  `src/memoryir/scenarios.py:extract_markers`, itself a dated
+  2026-08-14 decision — see that module's docstring — since no scenario
+  spec authors an explicit `marker_tokens` field).
 - **H4 — Containment: missed contamination AND unnecessary cost.** The
   `depth_aware` containment policy is compared against `flat_transitive`
   on *both* axes: over-quarantine cost (unnecessary quarantine/
@@ -101,6 +144,33 @@ conceptual distinction this rests on.
   demonstrates is real). The paper's contribution is the
   precision-recall frontier of incident containment, not a one-sided
   demonstration that conservative taint explodes.
+
+  **`depth_aware` algorithm, RESOLVED 2026-08-14 (dated decision):** the
+  frozen grid named `flat_transitive`/`depth_aware` as "one baseline, one
+  proposed method" without a concrete `depth_aware` algorithm.
+  Operationalized as conservative (context-exposure) propagation within
+  a window of `depth_aware_window=2` hops of the compromised root, then
+  `STRUCTURAL_PARENT`-only propagation beyond that window — trusting
+  broad co-retrieval taint near the compromise point, requiring confirmed
+  lineage further out. Implementation: `src/memoryir/metrics.py`'s
+  `depth_aware` policy, `eval/compute_h4_metrics.py`.
+
+  **A real measurement lesson, reported rather than hidden:** the
+  originally planned `C_regen` metric ("count of unique generating runs
+  replayed," i.e. distinct depths touched) turned out NON-DIFFERENTIATING
+  between the two policies in this harness's topology — the
+  always-continuing `child_1` structural lineage guarantees every depth
+  is touched under any reasonable policy, so "distinct depths touched"
+  is topology-determined, not policy-sensitive, here. The real
+  over-quarantine signal is object count instead: `depth_aware` flags
+  **~30% fewer objects than `flat_transitive`** at depth 5 (e.g.
+  gpt-4o-mini: 7.0 vs 10.0 average flagged objects), at a genuine,
+  quantified recall cost (missed_contaminated_n growing to ~0.42
+  objects/trace by depth 5 for gpt-4o-mini). Both metrics are reported
+  in `results/metrics/h4_headline_summary.csv`; the object-count
+  reduction is the metric that actually demonstrates H4's claimed
+  tradeoff in this design, and future analysis/writing should lead with
+  that, not `C_regen`.
 
 ## 2. Variables
 
