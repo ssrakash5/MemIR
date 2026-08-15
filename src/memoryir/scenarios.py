@@ -5,9 +5,36 @@ configs/scenarios/ -- does not re-derive or second-guess oracle
 true_parents assignments, those are the approved ground truth per
 configs/scenarios/README.md.
 """
+import re
 from pathlib import Path
 
 import yaml
+
+# H3 marker-token extraction (added 2026-08-14, DATED DECISION): no
+# scenario spec authors an explicit marker_tokens field (unlike
+# week3.md's original generic sketch). Mechanically derived instead --
+# ID-like tokens (codes, account/routing numbers, emails, amounts) found
+# in P1's text, unioned with any `entities` dict value that appears
+# verbatim as a substring of P1's text. Verified to give >=1 marker for
+# all 24 scenarios (see eval/compute_h3_metrics.py's exploration). If
+# this needs to change, it's a rubric-level edit requiring the usual
+# dated deviation entry, same as any other frozen-design change.
+_MARKER_ID_PATTERN = re.compile(
+    r"[A-Z]{1,6}-?\d{2,}|\+?\d[\d\-]{6,}|\d[\d,]{2,}|\b[\w.-]+@[\w.-]+\.\w+\b"
+)
+
+
+def extract_markers(spec: dict) -> set[str]:
+    """Distinctive surface-form tokens whose disappearance from a
+    descendant's content defines 'laundering' for H3 -- see module
+    docstring above."""
+    p1_text = source_fact_map(spec)["P1"]["text"]
+    markers = set(_MARKER_ID_PATTERN.findall(p1_text))
+    for v in spec.get("entities", {}).values():
+        v = str(v)
+        if v in p1_text:
+            markers.add(v)
+    return markers
 
 REQUIRED_TOP_LEVEL = [
     "scenario_id",
