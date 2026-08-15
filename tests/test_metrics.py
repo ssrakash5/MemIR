@@ -98,6 +98,31 @@ def test_depth_horizon_excludes_deeper_nodes():
     assert m0["b_flagged_n"] == 2  # {2, 3}
 
 
+def test_thresholded_policy_prunes_weak_edges():
+    g = _fixture_graph()
+    scores = {(1, 2): 0.9, (1, 3): 0.6, (2, 4): 0.9, (2, 5): 0.4}
+    g_scored = TraceGraph(nodes=g.nodes, edges=g.edges, root_id=g.root_id, edge_scores=scores)
+
+    # threshold=0.7 keeps only (1,2) and (2,4) -- same reachable set as "structural"
+    flagged_hi = b_flagged(g_scored, policy="thresholded", max_depth=2, threshold=0.7)
+    assert flagged_hi == {2, 4}, flagged_hi
+
+    # threshold=0.5 additionally keeps (1,3) but still prunes (2,5)
+    flagged_mid = b_flagged(g_scored, policy="thresholded", max_depth=2, threshold=0.5)
+    assert flagged_mid == {2, 3, 4}, flagged_mid
+
+    # threshold=0.0 keeps everything -- same reachable set as context_exposure
+    flagged_lo = b_flagged(g_scored, policy="thresholded", max_depth=2, threshold=0.0)
+    assert flagged_lo == {2, 3, 4, 5}, flagged_lo
+
+
+def test_thresholded_missing_score_is_pruned_not_kept():
+    g = _fixture_graph()
+    g_scored = TraceGraph(nodes=g.nodes, edges=g.edges, root_id=g.root_id, edge_scores={})
+    flagged = b_flagged(g_scored, policy="thresholded", max_depth=2, threshold=0.1)
+    assert flagged == set(), flagged  # every edge missing a score -> pruned, not defaulted-open
+
+
 def test_cycle_terminates():
     """week2.md's mandatory cycle test: a deliberately cyclic graph must
     not hang reachable_from()."""
