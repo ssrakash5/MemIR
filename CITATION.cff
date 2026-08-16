@@ -1,0 +1,16 @@
+# TODO: fill in before publication/release. Left as an explicit
+# placeholder (2026-08-16) rather than fabricated -- do not invent
+# author names, ORCIDs, or affiliations here.
+cff-version: 1.2.0
+message: "TODO: citation metadata not yet filled in -- see authors below."
+title: "MemoryIR: Post-Incident Blast-Radius Reconstruction for Poisoned Agent Memory"
+type: software
+authors:
+  - family-names: "TODO"
+    given-names: "TODO"
+    affiliation: "TODO"
+    orcid: "TODO (optional)"
+repository-code: "TODO: public repo URL, once released"
+license: MIT
+version: "0.1.0"
+date-released: "TODO"
