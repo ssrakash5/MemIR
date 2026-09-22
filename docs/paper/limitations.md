@@ -95,12 +95,17 @@ missing cells the other two models' corpora do not, concentrated in
 `authoritative_framing`-style scenarios and `write_fanout=3`
 conditions. Left as genuine missing data, not imputed.
 
-**Human validation is single-annotator.** Cohen's κ was computed
-against one human's blind labels on a 120-sample calibration set, not
-a human-human inter-annotator baseline — a low κ could in principle
-reflect genuine rubric ambiguity as easily as labeler failure, and we
-cannot fully separate those explanations without a second human
-annotator on the same sample.
+**Human validation now includes a human-human baseline.** Cohen's κ
+between the automated labeler and one human's blind labels on a
+120-sample calibration set is 0.87–0.88. A second independent human
+annotator blind-labeled the same 120-sample set afterward, giving a
+human-human baseline of κ = 0.9277 (115/120 raw agreement) — close to
+the pipeline's own agreement with either human, and informative rather
+than merely reassuring: all 5 human-human disagreements fall on the
+same REFERENCES-vs-CARRIES compositional boundary already flagged
+below as the labeler's weakest point, indicating that boundary reflects
+genuine rubric ambiguity rather than a labeler-specific failure (see
+Discussion).
 
 **Marker-token extraction for H3 is mechanical, not human-authored.**
 No scenario specification includes an explicit `marker_tokens` field;

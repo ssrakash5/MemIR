@@ -83,25 +83,38 @@ AgentPoison (2407.12784), MINJA (2503.03704).
    GitHub username; handled). Pushing that staged copy to a fresh repo
    and pointing an anonymizing service at it is still a manual step only
    the user can do.
-3. **No Discussion section.** Not drafted (see CLAUDE.md status
-   summary). **Appendix is now drafted** (2026-09-21,
+3. **Discussion and Appendix are both now drafted** — all named
+   sections in the paper are complete. **Appendix** (2026-09-21,
    `sections/appendix.tex`, `\input` after `\bibliography` with a
    `\onecolumn`/`\twocolumn` switch since its full per-depth H1–H4
    tables use `longtable`): full per-depth H1/H2/H3/H4 breakdowns (main
    body only shows depth 1/5 summaries), the full experimental grid,
    the seed-diversity finding, and one worked labeling example.
-   Compile-verified 2026-09-21: 0 errors, 0 undefined refs, 0 warnings
-   from the new content (5 pre-existing overfull-hbox warnings in
-   `results.tex` are unrelated, not introduced by this addition); PDF
-   is now 16 pages total (appendices don't count against the 12-page
-   body limit). Abstract, Open Science, Ethical Considerations, and
-   now Appendix are drafted; Discussion is the only section still
-   missing.
-4. **LLM-usage-considerations section still deliberately absent.**
-   Required by the checklist — the user is writing it themselves
-   (explicit instruction, 2026-09-09). Add
-   `\input{sections/llm_usage}` in `main.tex` (marked with a comment
-   where it goes) once that file exists, before `\bibliography`.
+   **Discussion** (2026-09-22, `sections/discussion.tex`, `\input`
+   right after `sections/limitations`): six subsections synthesizing
+   H1–H4 into operational guidance — the precision/recall frontier as
+   a real operator choice (not a defect), the cross-model asymmetry's
+   implication for provenance metadata, the human-human $\kappa$
+   result's implication that the REFERENCES-class weakness is genuine
+   rubric ambiguity (not a labeler artifact), how this work relates to
+   preventive (MemLineage) and reactive (MemAudit) approaches as
+   pipeline stages rather than competitors, when the framework does and
+   doesn't apply, and what to prioritize next given what was learned.
+   Also fixed a stale claim in `sections/limitations.tex` this same
+   session: it still said human validation was single-annotator, from
+   before the 2026-09-21 human-human $\kappa$ baseline existed — now
+   updated to report both. Compile-verified 2026-09-22: 0 errors, 0
+   undefined refs; PDF is now 17 pages total. **Checked page budget**:
+   unlike Open Science/Ethical Considerations/Appendix, Discussion is
+   part of the main body and counts toward the 12-page limit — verified
+   by extracting per-page text from the compiled PDF: Discussion ends
+   partway through page 11, with Open Science beginning immediately
+   after on that same page, so the body (Intro through Discussion) is
+   comfortably under 11 pages, well within the 12-page limit.
+4. **LLM-usage-considerations section removed from `main.tex`
+   entirely** (2026-09-22, at the user's request) — no placeholder
+   comment left. The user will insert `\input{sections/llm_usage}`
+   themselves at the correct location once they've written it.
 5. **Double-blind check was done at the Markdown/prose stage only** —
    re-check the compiled PDF once Discussion lands, since a
    reference to prior own work must stay third-person.
