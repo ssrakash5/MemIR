@@ -1,0 +1,36 @@
+Healthcare infrastructure (e.g., network, Electronic Medical Records, medical imaging
+systems); and General-purpose computing platforms.
+
+While cybersecurity controls may increase the complexity of interfaces to allow for
+interoperability, when properly implemented, the cybersecurity controls can help ensure
+that these capabilities remain safe and effective. Cybersecurity controls should be used as
+a means to allow for the safe and effective exchange and use of information. Additionally,
+cybersecurity controls should not be intended to prohibit a user from accessing their
+device data.
+
+When common technology and communication protocols are used to enable
+interoperability (e.g., Bluetooth, Bluetooth Low Energy, network protocols), device
+manufacturers should assess whether added security controls beneath such
+communication are needed to ensure the safety and effectiveness of the device.
+
+4. Third-Party Software Components
+
+As discussed in FDA's guidance "Off-The-Shelf (OTS) Software Use in Medical Devices,"
+medical devices commonly include third-party software components, including
+off-the-shelf and open source software. When these components are incorporated,
+security risks of the software components should become factors of the overall medical
+device system risk management processes and documentation.
+
+As part of demonstrating compliance with design and development under Subclause 7.3
+of ISO 13485, and to support supply chain risk management processes, all software,
+including those developed by the device manufacturer ("proprietary software") or
+obtained from third parties, should be assessed for cybersecurity risk. Device
+manufacturers should document all software components of a device and address or
+otherwise mitigate risks associated with these software components.
+
+In addition, under Subclause 7.4 of ISO 13485, a manufacturer must put in place processes
+and controls to ensure that its suppliers conform to the manufacturer's requirements. Such
+information is documented in the Design and Development Files, required by Subclause
+7.3.10, and Medical Device File, required by Subclause 4.2.3. This documentation
+demonstrates the device's overall compliance with the QMSR, as well as that the
+third-party components meet specifications established for the device.

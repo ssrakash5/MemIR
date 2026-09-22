@@ -1,0 +1,41 @@
+CSF Tiers can be applied to CSF Organizational Profiles to characterize the rigor of an
+organization's cybersecurity risk governance and management outcomes. This can help
+provide context on how an organization views cybersecurity risks and the processes in
+place to manage those risks. The Tiers can also be valuable when reviewing processes and
+practices to determine needed improvements and monitor progress made through those
+improvements.
+
+Appendix B of the CSF contains a notional illustration of the CSF Tiers. In that illustration,
+each Tier has separate descriptions for Cybersecurity Risk Governance (corresponding to
+the Govern Function) and Cybersecurity Risk Management (for the other five CSF
+Functions: Identify, Protect, Detect, Respond, and Recover).
+
+The Tiers capture an organization's outcomes over a range: Partial (Tier 1), Risk Informed
+(Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4). They reflect a progression from
+informal, ad hoc responses to approaches that are agile, risk-informed, and continuously
+improving.
+
+An organization wanting to use the CSF Tiers can reuse the notional descriptions from
+Appendix B of the CSF. Alternatively, they can customize those descriptions, create new
+ones, or use a set of descriptions they already have in place.
+
+Selecting Tiers
+
+Selecting the CSF Tiers that your organization should be meeting in its cybersecurity risk
+governance and management activities is generally performed by organization
+leadership.
+
+Here are tips for selecting Tiers:
+
+Selecting Tiers overall or at the Function or Category level will provide a better sense of
+the organization's current cybersecurity risk management practices than selecting Tiers
+at the lower Subcategory level.
+
+You can use one of the two Tier components (governance or management descriptions) if
+you want to focus on a subset of the CSF Functions. For example, if your scope is
+governance only, you can omit the Cybersecurity Risk Management descriptions.
+
+When selecting Tiers, consider the following aspects of the organization: current risk
+management practices, threat environment, legal and regulatory requirements,
+information sharing practices, business and mission objectives, supply chain
+requirements, and organizational constraints, including resources.

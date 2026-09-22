@@ -1,0 +1,39 @@
+Source: FDA, "Postmarket Management of Cybersecurity in Medical Devices" -- ISAO
+participation + Scope sections (page 8). Verbatim.
+SHA-256 of the full source PDF: cf373dbe12c45896df215107477f9c2034c00dc0953f6b4cb76133be573cd0c1
+Retrieved: 2026-09-22T13:42:28Z from https://www.fda.gov/files/medical%20devices/published/Postmarket-Management-of-Cybersecurity-in-Medical-Devices---Guidance-for-Industry-and-Food-and-Drug-Administration-Staff.pdf
+
+---
+
+The Agency wishes to promote collaboration among the medical device and Health IT
+community to develop a shared understanding of the risks posed by cybersecurity
+vulnerabilities to medical devices and foster the development of a shared understanding
+of risk assessment to enable stakeholders to consistently and efficiently assess patient
+safety and public health risks associated with identified cybersecurity vulnerabilities and
+take timely, appropriate action to mitigate the risks. This approach will also enable
+stakeholders to provide timely situational awareness to the HPH community and take
+efforts to preemptively address the cybersecurity vulnerability through appropriate
+mitigation and/or remediation before it impacts the safety, effectiveness, integrity or
+security of medical devices and the Health IT infrastructure.
+
+The Agency considers voluntary participation in an ISAO a critical component of a medical
+device manufacturer's comprehensive proactive approach to management of postmarket
+cybersecurity threats and vulnerabilities and a significant step towards assuring the
+ongoing safety and effectiveness of marketed medical devices. For companies that
+actively participate in such a program, and follow other recommendations in this
+guidance, the Agency does not intend to enforce certain reporting requirements of the
+Federal Food, Drug, and Cosmetic Act (FD&C Act) (see Section VII).
+
+More information about active participation in an ISAO can be found in Section IX.
+
+III. Scope
+
+This guidance applies to any marketed and distributed medical device including: 1) medical
+devices that contain software (including firmware) or programmable logic; and 2) software
+that is a medical device, including mobile medical applications. In addition, this guidance
+applies to medical devices that are considered part of an interoperable system and to
+"legacy devices," i.e., devices that are already on the market or in use.
+
+This guidance supplements the information addressed in the FDA guidance document
+titled "Cybersecurity for Networked Medical Devices Containing Off-the-Shelf (OTS)
+Software."

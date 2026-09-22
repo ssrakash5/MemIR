@@ -1,0 +1,42 @@
+Source: Microsoft Azure Well-Architected Framework, "Design review checklist for
+Reliability." Verbatim (HTML table/paragraph structure flattened to sentences).
+SHA-256 of the full source HTML: 59c9d0b6dd263abc135abd2ae83b735ee5273c1500523a0dea638a942b03fb7c
+Retrieved: 2026-09-22T13:42:28Z from https://learn.microsoft.com/en-us/azure/well-architected/reliability/checklist
+
+---
+
+This checklist presents a set of recommendations for you to use to evaluate the
+reliability, resiliency, and failure recovery strategies in your architecture design. To
+ensure reliability, identify the best infrastructure and application design for your
+workload. Make these decisions based on your business requirements that are mapped
+to availability and recoverability target metrics.
+
+To implement a reliable design, thoroughly consider decision points in your design and
+be aware of how those decisions affect your workload. This checklist and the
+accompanying guides provide resources to help you make those decisions. Make
+workload reliability a central consideration throughout the workload design,
+development, and operation lifecycle.
+
+Checklist
+
+Approach your design with a focus on reliability to help ensure that you design a
+workload that's resilient, manageable, and repeatable. If you don't include reliability
+practices and consider the tradeoffs, your design is potentially at risk. Carefully consider
+all the points covered in the checklist to instill confidence in your system's success.
+
+RE:01 Focus your workload design on simplicity and efficiency. Use a practical approach
+to avoid unnecessary complexity while meeting your business goals and requirements.
+
+RE:02 Identify and rate user and system flows. Use a criticality scale based on your
+business requirements to prioritize the flows.
+
+RE:03 Use failure mode analysis (FMA) to identify potential failures in your workload.
+Identify dependencies and failure points, and develop mitigation strategies for those
+failures.
+
+RE:04 Define reliability and recovery targets for your workload. Use the targets to inform
+your design and as the foundation of your health model.
+
+RE:05 Add redundancy at different levels, especially for critical flows, to help meet your
+reliability targets. Consider redundant infrastructure components such as compute and
+network, and multiple instances of your workload.

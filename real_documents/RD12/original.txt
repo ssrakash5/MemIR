@@ -1,0 +1,27 @@
+Outages and malfunctions are serious concerns for all workloads. A reliable workload
+must survive those events and continue to consistently provide its intended
+functionality. It must be resilient so that it can detect and withstand faults while
+continuing to operate. It must be recoverable so that, if a disruption exceeds resiliency
+measures, the workload can be restored within agreed recovery targets. It must also be
+available so that users can access the workload during the promised time period at the
+promised quality level.
+
+It's not realistic to assume failures won't occur, especially when the workload is built to
+run on distributed systems. Some components might fail while others continue to
+operate. At some point, the user experience might be affected, which compromises
+business goals.
+
+Workload architectures should have reliability assurances in application code,
+infrastructure, and operations. Design choices shouldn't change the intent that's
+specified by business requirements. Such changes should be considered significant
+tradeoffs.
+
+The design principles are intended to provide guidance for aspects of reliability that you
+should consider throughout the development lifecycle. Start with the recommended
+approaches and justify the benefits for a set of requirements. After you set your strategy,
+drive actions by using the Reliability checklist.
+
+If you don't apply these principles to your design, the workload most likely won't be
+prepared to anticipate or handle problems in production. The outcome might be service
+disruptions that lead to financial loss. In the case of critical workloads, failing to apply
+these principles could jeopardize safety.

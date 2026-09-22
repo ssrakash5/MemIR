@@ -1,0 +1,25 @@
+environment including emails, files, calendar, or internal enterprise systems such as CRM,
+IT Requests, etc. to chats. In addition, Enterprise Copilot can assist the user with common
+tasks such as creating calendar events, streamlining workflows and providing contextual
+insights.
+
+T1 - Memory Poisoning Risk: The attacker poisons the agent's memory over time, causing it
+to issue unintended behavior across sessions. Example: Through IPI the attacker poisons
+the memory of the copilot. Gaining persistent means to exfiltrate data every time the user
+engages with the agent.
+
+T2 - Tool Misuse Risk: The attacker exploits an integrated tool for malicious purposes.
+Example: Through an Indirect Prompt Injection, an attacker abuses the copilot's ability to
+read through personal user data to search for sensitive information, then exploiting the
+calendar tool to exfiltrate the data via a calendar invite sent to the attacker.
+
+T3 - Privilege Compromise Risk: Through tool or agent misconfiguration that violates
+principle of least privilege, an attacker can perform unauthorized actions. Example:
+Through a misconfiguration in the agent, an attacker can execute queries in the RAG
+database to access files and data it shouldn't be able to access.
+
+T6 - Intent Breaking & Goal Manipulation Risk: The attacker changes or manipulates the
+intent and goals of the copilot to perform nefarious actions. Example 1: Using an Indirect
+Prompt Injection through the email inbox an attacker uses the agent to search for
+sensitive data and instructs it to render a link to the user containing said data. The data is
+then leaked when the user clicks on the link.

@@ -1,0 +1,23 @@
+
+Option 2, enabling multifactor authentication by changing the user state, overrides
+Conditional Access policies. Because options 3 and 4 use Conditional Access policies, you
+can't use option 2 with them. This method requires Microsoft Entra ID P2 licensing.
+
+Migrate user-based service accounts to workload identities
+
+Some organizations use user accounts in Microsoft Entra ID as service accounts for
+automation. With mandatory MFA enforcement, it's critical to migrate these user-based
+service accounts to secure cloud-based service accounts with workload identities.
+Workload identities, including managed identities and service principals, are designed
+for automation scenarios and don't require MFA. These identities provide a more secure
+and manageable solution.
+
+Organizations that don't add extra layers of identity protection, such as multifactor
+authentication, are more susceptible to credential theft attacks. A credential theft attack
+can lead to data compromise.
+
+Use role-based access control
+
+Access management for cloud resources is critical for any organization that uses the
+cloud. Azure role-based access control (Azure RBAC) helps you manage who has access to
+Azure resources, what they can do with those resources, and which areas they can access.

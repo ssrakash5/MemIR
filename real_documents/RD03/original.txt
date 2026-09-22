@@ -1,0 +1,37 @@
+Information security for computer systems and data is a mature field with widely accepted
+and standardized practices for offensive and defensive cyber capabilities. GAI-based
+systems present two primary information security risks: GAI could potentially discover or
+enable new cybersecurity risks by lowering the barriers for or easing automated exercise of
+offensive capabilities; simultaneously, it expands the available attack surface, as GAI itself
+is vulnerable to attacks like prompt injection or data poisoning.
+
+Offensive cyber capabilities advanced by GAI systems may augment cyber security attacks
+such as hacking, malware, and phishing. Reports have indicated that LLMs are already able
+to discover some vulnerabilities in systems (hardware, software, data) and write code to
+exploit them.
+
+Information security for GAI models and systems also includes maintaining availability of
+the GAI system and the integrity and (when applicable) the confidentiality of the GAI code,
+training data, and model weights.
+
+Prompt injection involves modifying what input is provided to a GAI system so that it
+behaves in unintended ways. Security researchers have already demonstrated how indirect
+prompt injections can exploit vulnerabilities by stealing proprietary data or running
+malicious code remotely on a machine.
+
+Another cybersecurity risk to GAI is data poisoning, in which an adversary compromises a
+training dataset used by a model to manipulate its outputs or operation. Malicious
+tampering with data or parts of the model could exacerbate risks associated with GAI
+system outputs.
+
+Trustworthy AI Characteristics: Privacy Enhanced, Safe, Secure and Resilient, Valid and
+Reliable.
+
+Intellectual property risks from GAI systems may arise where the use of copyrighted works
+is not a fair use under the fair use doctrine. If a GAI system's training data included
+copyrighted material, GAI outputs displaying instances of training data memorization could
+infringe on copyright.
+
+How GAI relates to copyright, including the status of generated content that is similar to
+but does not strictly copy work protected by copyright, is currently being debated in legal
+fora.

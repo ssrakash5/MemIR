@@ -1,0 +1,55 @@
+Source: AWS Identity and Access Management (IAM) User Guide, "Security best practices in IAM"
+-- "Require workloads to use temporary credentials with IAM roles to access AWS" section.
+Verbatim (HTML list/paragraph structure flattened to sentences; no wording changed).
+SHA-256 of the full source HTML: 8b97534d790da8647c2b58e497060630ce5f2b01ce46e2d2deac2070ada0f338
+Retrieved: 2026-09-22T13:42:28Z from https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html
+
+---
+
+A workload is a collection of resources and code that delivers business value, such as an
+application or backend process. Your workload can have applications, operational tools,
+and components that require credentials to make requests to AWS services, such as
+requests to read data from Amazon S3. When you're building on an AWS compute service,
+such as Amazon EC2 or Lambda, AWS delivers the temporary credentials of an IAM role to
+that compute resource. Applications written using an AWS SDK will discover and use these
+temporary credentials to access AWS resources, and there is no need to distribute long
+lived credentials for an IAM user to your workloads running on AWS.
+
+Workloads that run outside of AWS, such as your on-premises servers, servers from other
+cloud providers, or managed continuous integration and continuous delivery (CI/CD)
+platforms, can still use temporary credentials. However, you'll need to deliver these
+temporary credentials to your workload. The following are ways you can deliver
+temporary credentials to your workloads:
+
+You can use IAM Roles Anywhere to request temporary AWS credentials for your workload
+using an X.509 Certificate from your public key infrastructure (PKI).
+
+You can call the AWS STS AssumeRoleWithSAML API to request temporary AWS credentials
+for your workload using a SAML assertion from an external identity provider (IdP) that is
+configured within your AWS account.
+
+You can call the AWS STS AssumeRoleWithWebIdentity API to request temporary AWS
+credentials for your workload using a JSON web token (JWT) from an IdP that is
+configured within your AWS account.
+
+You can request temporary AWS credentials from your IoT device using Mutual Transport
+Layer Security (MTLS) authentication using AWS IoT Core.
+
+Some AWS services also support integrations to deliver temporary credentials to your
+workloads running outside of AWS:
+
+Amazon Elastic Container Service (Amazon ECS) Anywhere lets you run Amazon ECS tasks
+on your own compute resources, and delivers temporary AWS credentials to your Amazon
+ECS tasks running on those compute resources.
+
+Amazon Elastic Kubernetes Service Hybrid Nodes lets you join your compute resources
+running outside of AWS as nodes to an Amazon EKS cluster. Amazon EKS can deliver
+temporary credentials to the Amazon EKS pods running on your compute resources.
+
+AWS Systems Manager Hybrid Activations lets you manage your compute resources
+running outside of AWS using SSM, and delivers temporary AWS credentials to the SSM
+agent running on your compute resources.
+
+We recommend using IAM roles for human users and workloads that access your AWS
+resources so that they use temporary credentials. However, for scenarios in which you
+need an IAM user or root user in your account, require MFA for additional security.

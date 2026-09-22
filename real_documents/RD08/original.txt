@@ -1,0 +1,30 @@
+
+If you have personal information stored on your network, strong authentication
+procedures -- including sensible password management -- can help ensure that only
+authorized individuals can access the data. When developing your company's policies,
+here are lessons to take from FTC cases.
+
+Insist on complex and unique passwords.
+
+Passwords like 121212 or qwerty aren't much better than no passwords at all. Give some
+thought to the password standards you implement. In the FTC's 2011 Twitter case, for
+example, the FTC alleged that the company let employees use common dictionary words
+as administrative passwords, as well as passwords they were already using for other
+accounts. According to the FTC, those lax practices left Twitter's system vulnerable to
+hackers who used password-guessing tools, or tried passwords stolen from other services
+in the hope that Twitter employees used the same password to access the company's
+system.
+
+Twitter could have limited those risks by implementing a more secure password system --
+for example, by requiring employees to choose complex passwords and training them not
+to use the same or similar passwords for both business and personal accounts.
+
+In Drizly, the FTC alleged the company failed to require unique and complex passwords or
+multifactor authentication for accessing the company's GitHub repositories. A Drizly
+executive reused a password he had used for other personal accounts, but his recycled
+password was exposed in an unrelated breach. This created an opportunity for a malicious
+actor to access Drizly's GitHub repositories, which made it possible for the attacker to
+access other database credentials and ultimately exfiltrate the personal information of 2.5
+million consumers. The company could have reduced those risks by requiring that
+employees create unique and complex passwords or multifactor authentication to protect
+access to source code or databases.

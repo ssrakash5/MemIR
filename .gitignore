@@ -11,6 +11,12 @@ results/kappa_sample/*.csv
 results/full_sweep/*
 !results/full_sweep/run_meta_*.json
 docs/papers/*.pdf
+# Frozen raw downloads for the real-document validation slice: audited by
+# SHA-256 in real_documents/manifest.yaml (git-tracked), but the ~23MB of
+# PDFs/HTML themselves follow the same convention as docs/papers/*.pdf
+# above -- verify by hash + re-fetch, don't bloat the repo with binaries.
+real_documents/raw/*.pdf
+real_documents/raw/*.html
 .pytest_cache/
 *.egg-info/
 docs/paper/latex/*.aux

@@ -1,0 +1,45 @@
+The NIST Cybersecurity Framework (CSF) 2.0 can help organizations manage and reduce
+their cybersecurity risks as they start or improve their cybersecurity program. The CSF
+outlines specific outcomes that organizations can achieve to address risk. Other NIST
+resources help explain specific actions that can be taken to achieve each outcome. This
+guide is a supplement to the NIST CSF and is not intended to replace it.
+
+The CSF 2.0, along with NIST's supplementary resources, can be used by organizations to
+understand, assess, prioritize, and communicate cybersecurity risks; it is particularly
+useful for fostering internal and external communication across teams, as well as
+integrating with broader risk management strategies.
+
+The CSF 2.0 is organized by six Functions -- Govern, Identify, Protect, Detect, Respond, and
+Recover. Together, these Functions provide a comprehensive view for managing
+cybersecurity risk. This Resource & Overview Guide offers details about each Function to
+serve as potential starting points.
+
+The CSF 2.0 is comprised of:
+
+CSF Core -- A taxonomy of high-level cybersecurity outcomes that can help any
+organization manage its cybersecurity risks.
+
+CSF Organizational Profiles -- A mechanism for describing an organization's current
+and/or target cybersecurity posture in terms of the CSF Core's outcomes.
+
+CSF Tiers -- Can be applied to CSF Organizational Profiles to characterize the rigor of an
+organization's cybersecurity risk governance and management practices.
+
+Explore more CSF 2.0 resources:
+
+Informative References -- View and create mappings between CSF 2.0 and other
+documents.
+
+Cybersecurity & Privacy Reference Tool (CPRT) -- Browse and download the CSF 2.0 Core &
+mapped content. CPRT provides a centralized, standardized, and modernized mechanism
+for managing reference datasets.
+
+Implementation Examples -- View and download notional examples of concise,
+action-oriented steps to help achieve the outcomes of the CSF 2.0 Subcategories in
+addition to the guidance provided in the Informative References.
+
+CSF 2.0 Reference Tool -- Access human and machine-readable versions of the Core (in
+JSON and Excel). You can also view and export portions of the Core using key search terms.
+
+Additional Resources Include: Community Profiles and Profile templates, Search tools,
+Concept papers, and FAQs.

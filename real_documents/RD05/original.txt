@@ -1,0 +1,38 @@
+each zero trust technology pillar and provide consistency across the maturity model:
+
+Traditional -- manually configured lifecycles (i.e., from establishment to decommissioning)
+and assignments of attributes (security and logging); static security policies and solutions
+that address one pillar at a time with discrete dependencies on external systems; least
+privilege established only at provisioning; siloed pillars of policy enforcement; manual
+response and mitigation deployment; and limited correlation of dependencies, logs, and
+telemetry.
+
+Initial -- starting automation of attribute assignment and configuration of lifecycles,
+policy decisions and enforcement, and initial cross-pillar solutions with integration of
+external systems; some responsive changes to least privilege after provisioning; and
+aggregated visibility for internal systems.
+
+Advanced -- wherever applicable, automated controls for lifecycle and assignment of
+configurations and policies with cross-pillar coordination; centralized visibility and
+identity control; policy enforcement integrated across pillars; response to pre-defined
+mitigations; changes to least privilege based on risk and posture assessments; and
+building toward enterprise-wide awareness (including externally hosted resources).
+
+Optimal -- fully automated, just-in-time lifecycles and assignments of attributes to assets
+and resources that self-report with dynamic policies based on automated/observed
+triggers; dynamic least privilege access (just-enough and within thresholds) for assets and
+their respective dependencies enterprise-wide; cross-pillar interoperability with
+continuous monitoring; and centralized visibility with comprehensive situational
+awareness.
+
+These maturity stages and the details associated with each pillar allow agencies to assess,
+plan, and maintain the investments needed to progress toward a ZTA. Subsections 0-5.5
+provide high-level information to support agencies in transitioning to zero trust across the
+five different pillars: Identity, Devices, Networks, Applications and Workloads, and Data.
+Each pillar also includes general details regarding Visibility and Analytics, Automation and
+Orchestration, and Governance capabilities to support integration with that pillar and
+across the model.
+
+These three cross-cutting capabilities highlight activities to support interoperability of
+functions across pillars. Figure 4 provides a high-level overview of the ZTMM, including key
+aspects of the pillar-specific functions for each pillar and across each maturity stage.
