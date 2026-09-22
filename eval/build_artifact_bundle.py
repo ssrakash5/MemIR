@@ -50,9 +50,10 @@ INCLUDE_PATHS = [
     "eval",                          # generation harness entry points + all compute/bootstrap/figure code
     "src/memoryir",                  # harness.py, labeler.py, and the rest of the package
     "docs",                          # preregistration, labeling protocol, corpus card, paper drafts
-    "results/metrics",               # summary CSVs (regenerable, but released for convenience)
+    "results/metrics",               # summary CSVs (regenerable, but released for convenience) -- large *_raw.csv dumps excluded below
     "results/figures",               # figures (regenerable, but released for convenience)
     "results/full_sweep",            # run_meta_*.json provenance only -- launch_log/err excluded below
+    "results/real_document_validation",  # RD-slice compact tables + manual-review file -- *_raw.csv excluded below
     "pyproject.toml",
     "CITATION.cff",
     "LICENSE",
@@ -67,6 +68,23 @@ EXCLUDE_GLOBS = [
     "results/full_sweep/retry_loop_log.txt",
     "**/__pycache__/**",
     "**/*.pyc",
+    # Large per-trace/per-row raw dumps (tens of MB each, ~119MB total) --
+    # open_science.md describes "summary CSVs", not these; they also
+    # aren't git-tracked in the real repo (results/* is gitignored there,
+    # regenerable-only). Every raw dump in this codebase's naming
+    # convention ends in _raw.csv, so this excludes by that suffix rather
+    # than an explicit per-file list that would need updating each time a
+    # new analysis script adds one.
+    "results/metrics/*_raw.csv",
+    "results/real_document_validation/*_raw.csv",
+    # Raw downloaded copies of third-party cited papers -- copyrighted
+    # material, not part of what open_science.md describes as released,
+    # and already gitignored in the real repo (docs/papers/*.pdf) for
+    # the same reason. "docs" is swept in wholesale by INCLUDE_PATHS
+    # above for the paper drafts/preregistration/etc. it also contains,
+    # so this needs an explicit carve-out -- .gitignore doesn't apply
+    # here since this script scans the filesystem, not git.
+    "docs/papers/*.pdf",
     "results/kappa_sample/*.csv",   # raw blind-annotation sheets, not part of the release per open_science.md
     "docs/paper/latex/main.pdf",
     "docs/paper/latex/*.aux",
