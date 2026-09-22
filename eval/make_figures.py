@@ -78,7 +78,10 @@ def fig1_precision_vs_depth_by_topk():
         ax.set_ylim(0, 1.05)
     axes[0].set_ylabel("Blast-radius precision (P_BR)\ncontext-exposure policy")
     axes[0].legend(fontsize=8)
-    fig.suptitle("Figure 1: Precision vs. depth, by retrieval fan-out (95% CI ribbons)")
+    # No embedded "Figure N: ..." title here -- the LaTeX \caption is the
+    # only title (duplicating it in the image itself read as inconsistent
+    # IEEE-template formatting and, for fig2, literally clipped off the
+    # canvas edge -- see docs/paper/latex/README.md's formatting-fix note).
     fig.tight_layout()
     out = FIG_DIR / "fig1_precision_vs_depth_by_topk.png"
     fig.savefig(out, dpi=150)
@@ -100,7 +103,6 @@ def fig2_precision_recall_frontier():
                         textcoords="offset points", xytext=(5, 5))
     ax.set_xlabel("Recall (R_BR)")
     ax.set_ylabel("Precision (P_BR)")
-    ax.set_title("Figure 2: Precision/recall frontier vs. attribution threshold (depth=5)")
     ax.legend()
     fig.tight_layout()
     out = FIG_DIR / "fig2_precision_recall_frontier.png"
@@ -124,7 +126,6 @@ def fig3_laundering_rate():
         ax.set_xlabel("depth")
     axes[0].set_ylabel("Laundering rate")
     axes[0].legend(fontsize=8)
-    fig.suptitle("Figure 3: Laundering rate by depth and derivation_transform (95% CI)")
     fig.tight_layout()
     out = FIG_DIR / "fig3_laundering_rate.png"
     fig.savefig(out, dpi=150)
@@ -143,7 +144,6 @@ def fig4_blast_radius_growth():
                     label=f"{model} ({policy})", alpha=0.85)
     ax.set_xlabel("depth")
     ax.set_ylabel("Mean flagged objects (blast radius)")
-    ax.set_title("Figure 4: Blast radius growth with depth")
     ax.legend(fontsize=7)
     fig.tight_layout()
     out = FIG_DIR / "fig4_blast_radius_growth.png"
@@ -164,7 +164,6 @@ def fig5_clean_control_false_positive():
             ax.plot(sub["depth"], sub["mean"], style, label=f"{model} / {policy}", alpha=0.8)
     ax.set_xlabel("depth")
     ax.set_ylabel("Mean objects flagged (B_true = 0 for all)")
-    ax.set_title("Figure 5: Propagation false-positive baseline (clean controls)")
     ax.legend(fontsize=6, ncol=2)
     fig.tight_layout()
     out = FIG_DIR / "fig5_clean_control_false_positive.png"

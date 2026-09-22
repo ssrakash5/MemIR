@@ -129,7 +129,10 @@ compromised root, structural-only beyond it) reduces over-quarantine
 relative to \texttt{flat\_transitive} (unconditional conservative
 propagation) at a quantifiable, non-zero recall cost:
 
-\begin{table}[h]
+% table* (not table): the fourth column made this too wide for a single
+% IEEEtran column and its text was overflowing into the adjacent column --
+% spanning both columns at the top of the page is the standard IEEE fix.
+\begin{table*}[!t]
 \centering
 \caption{H4: containment cost at depth 5.}
 \label{tab:h4}
@@ -142,7 +145,7 @@ gpt-4o & 10.0 & 7.0 & 0.11 \\
 llama-3.3-70b & 10.0 & 7.0 & 0.09 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \texttt{flat\_transitive} misses essentially nothing (missed
 contamination $\approx$0.0005 objects/trace, gpt-4o-mini only, zero for
