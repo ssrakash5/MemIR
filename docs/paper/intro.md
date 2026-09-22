@@ -109,4 +109,19 @@ quantifiable missed-contamination cost (H4).
    rather than confirming them: real (if rare) laundering at full
    scale, and a genuine cross-model asymmetry in how reliably surface
    markers survive derivation.
+4. A held-out, 20-document real-document validation slice that tests
+   which parts of the H1–H4 frontier survive moving from a synthetic,
+   LLM-authored corpus to naturally occurring source text: the
+   provenance/containment tradeoff reproduces closely, while the
+   absolute surface-laundering rate does not, a distinction we verify
+   with a full manual read of the sibling-contamination cases rather
+   than by trusting automated labels alone.
+
+MemoryIR does not claim a new poisoning attack or a universally
+optimal containment algorithm. It provides, to our knowledge, the
+first controlled measurement of the precision/recall/cost frontier for
+reconstructing downstream contamination after a memory is known to be
+compromised, and shows which parts of that frontier survive when the
+source material is moved from synthetic scenarios to real public
+documents.
 </content>

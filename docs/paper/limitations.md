@@ -34,11 +34,20 @@ sizes as directly representative of deployment settings.
 Retrieval and the H2 attribution-score analysis both use
 `all-MiniLM-L6-v2` (sentence-transformers) throughout — explicitly
 flagged in our own design documents as a placeholder pending a final
-pinned choice, not yet revisited before this draft. Results involving
-embedding similarity (H2's threshold sweep) should be read with this
-caveat; a different embedding model could shift the precise
-precision/recall frontier, though we would not expect it to change the
-qualitative existence of a frontier.
+pinned choice, not yet revisited before this draft. We checked, rather
+than merely asserted, that this does not change H2's qualitative
+result: recomputing the thresholded policy with a second,
+architecturally different embedding model (`all-mpnet-base-v2`,
+Results) on a scoped subset (gpt-4o-mini, seed 0, all 24 poisoned
+scenarios) reproduces the same precision-up/inflation-down trend as
+the threshold tightens. The absolute threshold values and the
+magnitude of recall erosion do differ between embedding spaces (recall
+erodes far less under `all-mpnet-base-v2` than under
+`all-MiniLM-L6-v2` at the strictest threshold tested), so the precise
+precision/recall frontier reported for the main corpus is still
+specific to `all-MiniLM-L6-v2` — only the qualitative existence and
+direction of the frontier has been checked against a second embedding
+model, not its exact shape.
 
 **`attribution_threshold` was operationalized after the fact, not
 specified in the original design.** The experimental grid named this
@@ -56,7 +65,18 @@ of either could produce a different quantitative frontier. We
 accordingly present `depth_aware` as a proof-of-concept operating
 point demonstrating that depth-dependent provenance decisions occupy a
 useful position on the quarantine/recall frontier — not as a proposed,
-tuned, or universally optimal containment algorithm.
+tuned, or universally optimal containment algorithm. We ran two
+targeted robustness checks against exactly this concern rather than
+leaving it as an unaddressed threat to validity: sweeping
+`depth_aware_window` ∈ {1, 2, 3} (Results) shows the flagged-object/
+missed-contamination tradeoff moves smoothly as the window expands
+(6.00/0.278, 7.00/0.206, 8.00/0.141 objects flagged/missed
+contamination, respectively, at depth 5) rather than window=2 being a
+singular hand-picked point; and recomputing H2's thresholded policy
+with a second, architecturally different embedding model
+(all-mpnet-base-v2 in place of all-MiniLM-L6-v2, Results) checks
+whether the precision/recall attribution frontier is an artifact of
+one embedding space.
 
 **Conservative propagation gives recall 1.0 largely by construction.**
 The context-exposure/`flat_transitive` policy's near-perfect recall

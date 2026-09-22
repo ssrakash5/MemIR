@@ -32,11 +32,20 @@ directly representative of deployment settings.
 choice.} Retrieval and the H2 attribution-score analysis both use
 \texttt{all-MiniLM-L6-v2} (sentence-transformers) throughout---explicitly
 flagged in our own design documents as a placeholder pending a final
-pinned choice, not yet revisited before this draft. Results involving
-embedding similarity (H2's threshold sweep) should be read with this
-caveat; a different embedding model could shift the precise
-precision/recall frontier, though we would not expect it to change the
-qualitative existence of a frontier.
+pinned choice, not yet revisited before this draft. We checked, rather
+than merely asserted, that this does not change H2's qualitative
+result: recomputing the thresholded policy with a second,
+architecturally different embedding model (\texttt{all-mpnet-base-v2},
+Results) on a scoped subset (gpt-4o-mini, seed 0, all 24 poisoned
+scenarios) reproduces the same precision-up/inflation-down trend as
+the threshold tightens. The absolute threshold values and the
+magnitude of recall erosion do differ between embedding spaces (recall
+erodes far less under \texttt{all-mpnet-base-v2} than under
+\texttt{all-MiniLM-L6-v2} at the strictest threshold tested), so the
+precise precision/recall frontier reported for the main corpus is
+still specific to \texttt{all-MiniLM-L6-v2}---only the qualitative
+existence and direction of the frontier has been checked against a
+second embedding model, not its exact shape.
 
 \textbf{\texttt{attribution\_threshold} was operationalized after the
 fact, not specified in the original design.} The experimental grid

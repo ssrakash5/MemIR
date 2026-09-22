@@ -1,7 +1,8 @@
 <!-- DRAFT — Markdown first. Synthesizes Results/Limitations into
 operational implications; does not introduce new numbers or claims
-beyond what H1-H4, the clean-control baseline, and the human-human
-kappa result already establish. -->
+beyond what H1-H4, the clean-control baseline, the human-human kappa
+result, the real-document validation slice, and the H2/H4 robustness
+checks (Results) already establish. -->
 
 # Discussion
 
@@ -29,6 +30,24 @@ run depends on what a false positive costs them relative to a false
 negative, a judgment this paper does not make on the operator's
 behalf.
 
+Two properties of this frontier are worth being confident about rather
+than merely hoping generalize: whether it is an artifact of the one
+embedding model used to threshold attribution, and whether
+`depth_aware`'s reported operating point is a hand-picked good result
+rather than a real point on a continuous tradeoff. We checked both
+directly (Results) rather than leaving them as unaddressed threats to
+validity. Re-thresholding H2 with a second, architecturally different
+embedding model reproduces the same precision-up/inflation-down trend
+as attribution strictness increases, even though the absolute
+threshold values and the amount of recall erosion differ between
+embedding spaces — the frontier's *existence* is not an artifact of
+`all-MiniLM-L6-v2`, even though its precise shape is still reported
+only for that model. Sweeping `depth_aware`'s conservative window
+across {1, 2, 3} hops shows the flagged-object/missed-contamination
+tradeoff move smoothly and monotonically, not jump discontinuously
+around window=2 — `depth_aware` is one legible point on a family of
+depth-dependent policies, not a single number chosen to look good.
+
 ## No model is uniformly safer — provenance metadata needs to know which model wrote what
 
 The cross-model asymmetry that recurs across H1, H3, and H4 (gpt-4o-mini
@@ -37,16 +56,21 @@ missed-contamination cost; Llama-3.3-70B shows by far the most
 laundering under `paraphrase`) is not just a comparison result — it has
 a direct operational consequence. A deployment that mixes models (a
 cheap model for routine derivation, a stronger model for high-stakes
-writes, or a fallback model during an outage) cannot apply one
-propagation policy uniformly across its whole memory graph and expect
-uniform containment quality. Provenance metadata needs to record which
+writes, or a fallback model during an outage) should not assume that
+one propagation policy tuned against a single model's profile performs
+equally well against another's — our results motivate recording which
 model produced a given derived memory, not just the structural edges
-between memories, so that containment policy can be conditioned on it —
-a `depth_aware` window tuned against gpt-4o's missed-contamination
-profile is not the same policy for a memory Llama-3.3-70B wrote. We did
-not evaluate policy parameters conditioned on model identity; this
-paper establishes that the asymmetry is real and large enough to
-matter, not what the model-conditioned policy should be.
+between memories, and evaluating containment policy as a function of
+that model identity, rather than assuming a uniform policy is safe by
+default. A `depth_aware` window tuned against gpt-4o's
+missed-contamination profile is not obviously the same policy for a
+memory Llama-3.3-70B wrote, though we did not test whether a uniform
+policy is in fact acceptable in any particular deployment — only that
+the underlying per-model behavior is heterogeneous enough that the
+question is worth asking. We did not evaluate policy parameters
+conditioned on model identity; this paper establishes that the
+asymmetry is real and large enough to matter, not what the
+model-conditioned policy should be.
 
 ## The compositional boundary is real, not a labeler artifact
 
@@ -55,17 +79,25 @@ recall 0.46, concentrated in `multi_hop_setup` scenarios) could, before
 this session, have been explained two ways: genuine rubric ambiguity at
 the CARRIES/REFERENCES boundary, or a labeler-specific failure. The
 human-human $\kappa$ baseline computed after the original submission
-draft ($\kappa = 0.9277$, 115/120 raw agreement) settles this: all five
-disagreements between two independent human annotators fell on exactly
-that same boundary — two true statements placed side by side versus a
-combined assertion of the full compositional claim. Humans genuinely
-disagree here too. The operational implication is not that the
-labeling pipeline needs more tuning at this boundary; it is that any
-deployment using this framework (or any automated labeler at all)
-should treat multi-hop/compositional exposure flags as lower-confidence
-by construction and route them to human review specifically, rather
-than trusting the same confidence threshold that works for
-single-premise claims.
+draft ($\kappa = 0.9277$, 115/120 raw agreement) supports the former
+interpretation: all five disagreements between two independent human
+annotators fell on exactly that same boundary — two true statements
+placed side by side versus a combined assertion of the full
+compositional claim. Humans genuinely disagree here too, though two
+annotators over 120 examples is evidence for, not a settled ontology of,
+that boundary. A second, independent piece of evidence points the same
+direction: the manual, full-population read of all 46 `child_2=CARRIES`
+cases in the real-document slice (Results) found that 40/46 explicitly
+contained the injected claim's marker or wording, meaning the automated
+labeler's CARRIES calls are not simply pattern-matching noise on
+held-out data either. Together, these suggest the operational
+implication is not that the labeling pipeline needs more tuning at the
+CARRIES/REFERENCES boundary specifically; it is that any deployment
+using this framework (or any automated labeler at all) should treat
+multi-hop/compositional exposure flags as lower-confidence by
+construction and route them to human review specifically, rather than
+trusting the same confidence threshold that works for single-premise
+claims.
 
 ## Where this sits relative to prevention and reactive investigation
 
@@ -104,9 +136,9 @@ incident, not retrofitted after one. This is worth stating plainly
 because it bounds the claim: we are not arguing every agent memory
 system should adopt these specific metrics, only that systems capable
 of logging provenance in the first place have a measurable
-precision/recall/cost frontier to reason about, and this paper is the
-first measurement of what that frontier looks like under branching
-derivation.
+precision/recall/cost frontier to reason about, and, to our knowledge,
+this paper is the first measurement of what that frontier looks like
+under branching derivation.
 
 ## What this changes about where to look next
 
@@ -117,9 +149,12 @@ labeler tuning but a targeted human study of the compositional boundary
 specifically — more `multi_hop_setup`-style scenarios, more annotators,
 a rubric refinement aimed at that one boundary rather than the rubric
 as a whole. Similarly, the cross-model asymmetry's practical weight
-(Discussion, above) suggests the real-document validation slice already
-planned as future work (Limitations) should prioritize mixed-model
-traces specifically, not just naturalistic content, since the
-asymmetry we measure here on synthetic scenarios is exactly the kind of
-effect that could look different — larger, smaller, or differently
-distributed across models — on real production derivation patterns.
+(Discussion, above) suggests that a natural next extension of the
+real-document validation slice completed in this paper (Results,
+Limitations) is to construct mixed-model traces specifically, not just
+more naturalistic content, since the asymmetry we measure here on
+synthetic scenarios — and confirm, directionally, on real documents —
+is exactly the kind of effect that could look different — larger,
+smaller, or differently distributed across models — on real production
+derivation patterns where a single trace's writes are not all produced
+by the same model.

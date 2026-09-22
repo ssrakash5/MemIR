@@ -76,6 +76,43 @@ threshold at all. An aggressive threshold (0.85) drops recall sharply
 threshold prunes exactly the weakly-attributed `CO_RETRIEVED` edges
 that, per H1, are sometimes the *only* path to real contamination.
 
+**Robustness check: does the frontier depend on the embedding model?**
+`all-MiniLM-L6-v2` was an explicitly documented placeholder
+(`src/memoryir/embeddings.py`), never validated against another
+embedding space — the obvious reviewer criticism is that the attribution
+frontier above could be an artifact of one embedding space rather than a
+real property of the derivation graph. We recomputed H2 with a second,
+architecturally different embedding model (`all-mpnet-base-v2` — MPNet,
+not MiniLM; 768-dim, not 384; different training mixture), scoped to
+gpt-4o-mini/seed=0/all 24 poisoned scenarios (25,345 memory nodes
+re-embedded locally, no new generation, no change to the frozen
+main-run pgvector embeddings). Cosine similarity has a different scale
+in this embedding space, so thresholds were chosen from *this run's own*
+similarity distribution (25th/50th/75th percentile: 0.19/0.29/0.44) —
+not the MiniLM run's 0.5/0.7/0.85, which have no privileged meaning
+here:
+
+| Threshold (own-dist. quantile) | P_BR | R_BR | Inflation |
+|---|---|---|---|
+| 0.19 (p25) | 0.684 | 1.000 | 1.93 |
+| 0.29 (p50) | 0.757 | 1.000 | 1.64 |
+| 0.44 (p75) | 0.884 | 0.999 | 1.31 |
+
+(depth 5, gpt-4o-mini/seed=0/24 scenarios, `results/metrics/h2_second_embedding_headline.csv`)
+
+The qualitative frontier survives: precision rises monotonically
+(0.684 → 0.757 → 0.884) and inflation falls monotonically (1.93 → 1.64
+→ 1.31) as the threshold tightens, exactly the direction H2 predicts.
+The magnitude differs in one notable way — recall barely erodes in
+this embedding space (1.000 → 0.999) compared to the MiniLM run's sharp
+drop at its strictest threshold (to 0.63–0.73) — which is itself
+informative: it suggests `all-mpnet-base-v2`'s similarity scores
+separate `STRUCTURAL_PARENT` from `CO_RETRIEVED` edges more cleanly at
+the high end than `all-MiniLM-L6-v2` does, not that the frontier itself
+is embedding-specific. What matters for H2's claim is that increasing
+attribution strictness still trades some recall for higher precision
+under a materially different embedding space — it does.
+
 ## H3 — Surface vs. structural traceability (non-directional, as pre-registered)
 
 Overall laundering rate across the full corpus: **0.79%** (662 of
@@ -142,6 +179,36 @@ always-continuing structural lineage guarantees every depth is touched
 regardless of policy — see Limitations. The object-count numbers above
 are the metric that actually demonstrates the tradeoff.
 
+**Robustness check: does the tradeoff depend on the specific 2-hop
+window?** `depth_aware`'s window was a dated, explicitly-flagged
+operationalization (Limitations) — the frozen design named "one
+baseline, one proposed method" without specifying the proposed
+method's algorithm. A natural question is whether the reported ~30%
+reduction is a real point on a continuous tradeoff or a hand-picked
+operating point that happens to look favorable. We swept
+`depth_aware_window` ∈ {1, 2, 3} at depth 5, full 24-scenario corpus,
+all 3 models, all 5 seeds (n=24 scenarios, same bootstrap discipline as
+above), using `src/memoryir/metrics.py`'s `b_flagged` unmodified — no
+new code in the frozen metrics module, only a new caller
+(`eval/compute_h4_window_sensitivity.py`):
+
+| Window (hops) | Objects flagged (mean) | Missed contamination (mean) |
+|---|---|---|
+| 1 | 6.00 | 0.278 |
+| 2 | 7.00 | 0.206 |
+| 3 | 8.00 | 0.141 |
+
+The tradeoff moves smoothly as the window expands: each additional hop
+of conservative propagation costs exactly one more flagged object
+(mechanical, given this harness's always-continuing structural
+lineage) and buys back a further ~25–32% reduction in missed
+contamination relative to the previous window. This is the stronger
+result to report — not that window=2 is optimal (we make no such
+claim), but that `depth_aware` is one point on a family of
+depth-dependent policies whose cost/recall tradeoff is continuous and
+predictable, not a single hand-picked configuration. Full per-model
+breakdown in `results/metrics/h4_window_sensitivity_by_model.csv`.
+
 ## Clean-control false-positive baseline
 
 Six genuinely unpoisoned scenarios (no adversarial content anywhere)
@@ -177,8 +244,11 @@ artifact of the specific poisoned scenarios it was measured on.
 
 ## Real-document ecological-validity slice
 
-To test whether the synthetic-corpus findings persist under naturally
-authored source material, we constructed a held-out validation slice from
+The strongest evidence that H1–H4 are not artifacts of a synthetic,
+LLM-authored corpus comes from deliberately moving the source material
+out from under the pipeline. To test whether the synthetic-corpus
+findings persist under naturally authored source material, we
+constructed a held-out validation slice from
 20 frozen public documents spanning five domains (NIST, CISA, OWASP, FTC,
 AWS, Azure, FDA, IRS). We injected one controlled target claim per document
 while retaining verbatim benign source facts and distractors, and ran the
@@ -216,6 +286,15 @@ estimate alone as a corpus-invariant quantity: the direction of the
 real-vs-synthetic gap is a robust finding, but its exact magnitude is
 sensitive to source-text regime and should not be extrapolated to
 deployment settings from this slice alone.
+
+Read together, this is a more credible and more useful claim than
+"everything replicated": the provenance/containment frontier
+(structural precision/recall, `depth_aware`'s inflation reduction)
+appears robust across source regimes, while the absolute
+surface-laundering rate does not, and the manual read of all 46
+`child_2=CARRIES` cases shows that difference is measured, not just
+inferred from label rates that could themselves have shifted with the
+source material.
 
 ## Summary across hypotheses
 

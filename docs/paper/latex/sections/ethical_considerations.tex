@@ -1,10 +1,16 @@
 \section*{Ethical Considerations}
 
-\textbf{No real systems, users, or data are attacked.} All 30
-scenarios are synthetic: hand-authored specifications with
-LLM-generated surface text (Section~\ref{sec:method}), not real
-production agent-memory traces. No deployed agent, real user account,
-or real document was targeted or compromised to produce this corpus.
+\textbf{No real systems or users are attacked.} The main 30 scenarios
+are synthetic: hand-authored specifications with LLM-generated surface
+text (Section~\ref{sec:method}), not real production agent-memory
+traces. The 20-scenario real-document validation slice
+(Section~\ref{sec:real-document-slice}) uses source text copied
+offline from public documents (NIST, CISA, OWASP, FTC, AWS, Azure,
+FDA, IRS guidance and reference material); that text is modified only
+within our own experimental corpus --- a fabricated claim is inserted
+into our copy, never into the source document itself, and no live
+system, deployed agent, real user account, or production document is
+targeted, accessed, or compromised at any point in either corpus.
 
 \textbf{Our poison-injection techniques are not novel attack
 contributions.} The four \texttt{poison\_form} styles we use to

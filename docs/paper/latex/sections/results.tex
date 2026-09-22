@@ -88,6 +88,41 @@ threshold prunes exactly the weakly-attributed \texttt{CO\_RETRIEVED}
 edges that, per H1, are sometimes the \emph{only} path to real
 contamination.
 
+\textbf{Robustness check: does the frontier depend on the embedding
+model?} \texttt{all-MiniLM-L6-v2} was an explicitly documented
+placeholder, never validated against another embedding space. We
+recomputed H2 with a second, architecturally different model
+(\texttt{all-mpnet-base-v2}---MPNet, 768-dim, vs.\ MiniLM, 384-dim),
+scoped to gpt-4o-mini/seed=0/all 24 poisoned scenarios (25{,}345
+memory nodes re-embedded locally; no new generation, no change to the
+frozen main-run embeddings). Thresholds are drawn from \emph{this
+run's own} similarity distribution (25th/50th/75th percentile), since
+cosine similarity has a different scale in a different embedding
+space---not the MiniLM run's 0.5/0.7/0.85:
+
+\begin{table}[h]
+\centering
+\caption{H2 robustness: second embedding model (all-mpnet-base-v2), depth 5.}
+\label{tab:h2-second-embedding}
+\begin{tabular}{lccc}
+\toprule
+Threshold (own-dist.\ quantile) & $P_{BR}$ & $R_{BR}$ & Inflation \\
+\midrule
+0.19 (p25) & 0.684 & 1.000 & 1.93 \\
+0.29 (p50) & 0.757 & 1.000 & 1.64 \\
+0.44 (p75) & 0.884 & 0.999 & 1.31 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The qualitative frontier survives: precision rises and inflation falls
+monotonically as the threshold tightens, exactly the direction H2
+predicts, though recall barely erodes here (1.000 $\to$ 0.999) versus
+MiniLM's sharp drop at its strictest threshold (to 0.63--0.73)---
+suggesting \texttt{all-mpnet-base-v2} separates
+\texttt{STRUCTURAL\_PARENT} from \texttt{CO\_RETRIEVED} edges more
+cleanly at the high end, not that the frontier is embedding-specific.
+
 \subsection{H3---Surface vs.\ structural traceability (non-directional, as pre-registered)}
 
 Overall laundering rate across the full corpus: \textbf{0.79\%} (662 of
@@ -171,6 +206,39 @@ always-continuing structural lineage guarantees every depth is touched
 regardless of policy---see Limitations. The object-count numbers above
 are the metric that actually demonstrates the tradeoff.
 
+\textbf{Robustness check: does the tradeoff depend on the specific
+2-hop window?} \texttt{depth\_aware}'s window was a dated,
+explicitly-flagged operationalization (Limitations); a natural
+question is whether the reported $\sim$30\% reduction is a real point
+on a continuous tradeoff or a hand-picked favorable one. We swept
+\texttt{depth\_aware\_window} $\in \{1, 2, 3\}$ at depth 5 (full
+24-scenario corpus, all 3 models, all 5 seeds, $n=24$ scenarios),
+reusing \texttt{b\_flagged} unmodified---no new code in the frozen
+metrics module, only a new caller:
+
+\begin{table}[h]
+\centering
+\caption{H4 robustness: depth-window sensitivity at depth 5.}
+\label{tab:h4-window}
+\begin{tabular}{lcc}
+\toprule
+Window (hops) & Objects flagged (mean) & Missed contam.\ (mean) \\
+\midrule
+1 & 6.00 & 0.278 \\
+2 & 7.00 & 0.206 \\
+3 & 8.00 & 0.141 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The tradeoff moves smoothly as the window expands: each hop costs
+exactly one more flagged object (mechanical, given this harness's
+always-continuing structural lineage) and buys back a further
+$\sim$25--32\% reduction in missed contamination. This is the stronger
+result---not that window=2 is optimal, but that \texttt{depth\_aware}
+is one point on a family of depth-dependent policies with a continuous,
+predictable tradeoff, not a hand-picked configuration.
+
 \subsection{Clean-control false-positive baseline}
 
 Six genuinely unpoisoned scenarios (no adversarial content anywhere)
@@ -210,8 +278,9 @@ of the specific poisoned scenarios it was measured on.
 \subsection{Real-document ecological-validity slice}
 \label{sec:real-document-slice}
 
-To test whether the synthetic-corpus findings persist under naturally
-authored source material, we constructed a held-out validation slice from
+The strongest evidence that H1--H4 are not artifacts of a synthetic,
+LLM-authored corpus comes from moving the source material out from
+under the pipeline: a held-out validation slice from
 20 frozen public documents spanning five domains (NIST, CISA, OWASP, FTC,
 AWS, Azure, FDA, IRS). We injected one controlled target claim per document
 while retaining verbatim benign source facts and distractors, and ran the
@@ -249,6 +318,12 @@ the point estimate alone as a corpus-invariant quantity: the direction of
 the real-vs-synthetic gap is a robust finding, but its exact magnitude is
 sensitive to source-text regime and should not be extrapolated to
 deployment settings from this slice alone.
+
+This is a more credible claim than ``everything replicated'': the
+provenance/containment frontier appears robust across source regimes,
+while the absolute surface-laundering rate does not---and the manual
+read of all 46 cases shows that difference is measured, not merely
+inferred from label rates.
 
 \subsection{Summary across hypotheses}
 

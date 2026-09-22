@@ -4,10 +4,10 @@ cross-session security problem distinct from single-turn prompt
 injection, because the compromised state outlives the triggering
 interaction and can be \emph{derived} into further memories through
 summarization, paraphrase, or continuation. Prior work asks either
-whether a poisoned label survives to gate a future action (preventive)
-or how to rank suspicious memories after a harmful outcome is already
-observed (reactive). We study a different, operationally realistic
-moment: once a memory or source is \emph{known} to be compromised---independent
+whether a poisoned label survives to gate a future action, or how to
+rank suspicious memories after harm is already observed. We study a
+different, operationally realistic moment: once a memory or source is
+\emph{known} to be compromised---independent
 of whether it has caused visible harm yet---how accurately can execution
 provenance reconstruct its downstream blast radius in a \textbf{branching}
 derivation graph, and what does containment cost, as a function of
@@ -31,7 +31,13 @@ marker-matching check would suggest, but not perfectly---a small
 persists at full corpus scale (H3); and a depth-aware containment
 policy reduces over-quarantine by roughly 30\% relative to a flat
 conservative policy, at a quantifiable and cross-model-uneven
-missed-contamination cost (H4). No single model is uniformly safer
-across all three failure modes we measure, which is itself a result
-an incident-response operator needs, not an artifact to be averaged
-away.
+missed-contamination cost (H4). A held-out validation slice of 20 real
+public documents (240 traces, 2{,}400 derived memories) reproduces the
+main containment tradeoff---depth-aware propagation cutting inflation
+from 3.57 to 2.50, structural precision/recall consistent with the
+synthetic corpus---but shows a substantially higher and more
+heterogeneous surface-laundering rate (19.1\% [6.9\%, 33.1\%],
+scenario-level), indicating the provenance/containment frontier
+generalizes more robustly than the absolute laundering rate does. No
+single model is uniformly safer across all three failure modes we
+measure, a result an operator needs, not an artifact to average away.
