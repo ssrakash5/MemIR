@@ -1,0 +1,65 @@
+% Verified 2026-09-09 directly against arXiv abstract pages (WebFetch to
+% arxiv.org/abs/<id>, not copied from a secondhand summary) -- see
+% docs/paper/latex/README.md for the verification note. Titles/authors
+% below are exact as of that date; re-check before submission in case of
+% further arXiv revisions (MINJA's title, for instance, already changed
+% once -- see README).
+
+@misc{memlineage,
+  author = {Ciyan Ouyang and Rui Hou},
+  title  = {MemLineage: Lineage-Guided Enforcement for LLM Agent Memory},
+  eprint = {2605.14421},
+  archivePrefix = {arXiv},
+  year   = {2026}
+}
+
+@misc{memaudit,
+  author = {Zhewen Tan and Yilun Yao and Huiyan Jin and Wenhan Yu and Guoan Wang and Mengyuan Fan and Liang Lu and Feng Liu and Xiangzheng Zhang and Duohe Ma and Tong Yang and Lin Sun},
+  title  = {MemAudit: Post-hoc Auditing of Poisoned Agent Memory via Causal Attribution and Structural Anomaly Detection},
+  eprint = {2605.23723},
+  archivePrefix = {arXiv},
+  year   = {2026}
+}
+
+@misc{memsecbench,
+  author = {Xuanze Chen and Xukang Xie and Wentao Fu and Jiajun Zhou and Shanqing Yu and Qi Xuan},
+  title  = {MemSecBench: Tracking Agent Memory Poisoning from Persistence to Consequence and Repair},
+  eprint = {2607.27080},
+  archivePrefix = {arXiv},
+  year   = {2026},
+  note   = {PDF available locally: docs/papers/2607.27080v1.pdf}
+}
+
+@misc{mpbench,
+  author = {Pritam Dash and Tongyu Ge and Aditi Jain and Tanmay Shah and Zhiwei Shang},
+  title  = {From Untrusted Input to Trusted Memory: A Systematic Study of Memory Poisoning Attacks in LLM Agents},
+  eprint = {2606.04329},
+  archivePrefix = {arXiv},
+  year   = {2026},
+  note   = {v2; distinct from the unrelated same-named arXiv 2503.12505 -- do not conflate, see docs/paper/related\_work.md. PDF for 2503.12505 available locally (docs/papers/2503.12505v1.pdf) but that paper is NOT cited -- it is the different, unrelated work.}
+}
+
+@misc{agentpoison,
+  author = {Zhaorun Chen and Zhen Xiang and Chaowei Xiao and Dawn Song and Bo Li},
+  title  = {AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases},
+  eprint = {2407.12784},
+  archivePrefix = {arXiv},
+  year   = {2024}
+}
+
+@misc{minja,
+  author = {Shen Dong and Shaochen Xu and Pengfei He and Yige Li and Jiliang Tang and Tianming Liu and Hui Liu and Zhen Xiang},
+  title  = {Memory Injection Attacks on LLM Agents via Query-Only Interaction},
+  eprint = {2503.03704},
+  archivePrefix = {arXiv},
+  year   = {2025},
+  note   = {Title verified 2026-09-09 against the current arXiv abstract page; an earlier version of this paper circulated under a different title (``A Practical Memory Injection Attack against LLM Agents''\,) -- use the current title, and re-verify close to submission in case of another revision.}
+}
+
+@misc{owasp-asi,
+  author = {{OWASP Agentic Security Initiative}},
+  title  = {{Agentic AI -- Threats and Mitigations}},
+  howpublished = {\url{https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/}},
+  year   = {2025},
+  note   = {v1.0, 2025-02-17. Landing page confirmed 2026-09-09 (WebFetch). CORRECTION 2026-09-21: the full 53-page guide (https://genai.owasp.org/download/45674/) was downloaded and text-extracted directly -- the code previously cited in our text, ``ASI06,'' does NOT appear anywhere in the document (zero matches). The guide's actual code for this threat, used consistently in its Detailed Threat Model table and Example Threat Models section, is ``T1'' (Memory Poisoning). Our text and refs.bib now cite T1, not ASI06.}
+}

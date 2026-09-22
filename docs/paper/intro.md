@@ -17,7 +17,8 @@ processes and subsequently writes about — is now an established
 cross-session agent security problem, distinct from single-turn prompt
 injection precisely because the compromised state outlives the
 triggering interaction. OWASP's Agentic Security Initiative names this
-failure mode explicitly (ASI06); recent work (MemLineage, MemAudit,
+failure mode explicitly (Memory Poisoning, threat ID T1 in its
+Agentic AI Threats and Mitigations guide); recent work (MemLineage, MemAudit,
 MemSecBench, MPBench, AgentPoison, MINJA — see Related Work) has moved
 the subfield from essentially nothing to active study within months.
 
@@ -101,7 +102,7 @@ quantifiable missed-contamination cost (H4).
    both hand-authoring every edge and letting an LLM decide its own
    ground truth after the fact — validated against blind human
    annotation (κ = 0.87–0.88).
-3. A full factorial study (21,600 generated traces, 3 LLMs, 30
+3. A full factorial study (21,600 planned / 21,570 generated traces, 3 LLMs, 30
    scenarios including clean controls, 5 dependent variables) that
    characterizes the H1–H4 tradeoffs empirically, including two
    findings that revised our own pre-registered pilot expectations

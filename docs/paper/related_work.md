@@ -7,7 +7,8 @@ re-extract from second-hand summaries when converting to LaTeX. -->
 ## Persistent-memory poisoning as a threat class
 
 OWASP's Agentic Security Initiative names cross-session memory
-poisoning as a distinct threat category (ASI06), separate from
+poisoning as a distinct threat category (Memory Poisoning, threat ID
+T1 in its Agentic AI Threats and Mitigations guide), separate from
 single-turn prompt injection precisely because the compromised state
 persists and can influence multiple future interactions. A cluster of
 recent work — MemLineage, MemAudit, MemSecBench, MPBench, AgentPoison,
@@ -42,7 +43,15 @@ action, before harm occurs. We ask: given a memory that is *already
 known* to be compromised, what is the actual shape of its downstream
 footprint in a **branching** graph (multiple derived memories per
 retrieval event, not one), and what does reconstructing and containing
-that footprint cost? MemLineage's Coarse attribution mode acknowledges
+that footprint cost? Put plainly: **prior lineage systems use
+provenance primarily as an enforcement primitive; we treat provenance
+as an incident-response primitive**, evaluated against a different
+object (reconstruction accuracy and containment cost, not action-gating
+accuracy) and against semantic downstream ground truth in branching
+derivation graphs rather than linear chains — branching structure
+alone is not the novelty claim; the different trigger condition,
+ground truth, metrics, and decision objective together are. MemLineage's
+Coarse attribution mode acknowledges
 the precision/recall tradeoff we study exists, but does not
 characterize it under branching write fan-out the way we do (H1), and
 its evaluation does not construct or measure a blast-radius
