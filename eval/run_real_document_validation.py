@@ -254,11 +254,19 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.smoke:
+        # top_k=3 is deliberately OUTSIDE --launch's top_k in {5, 10}: trace_key()
+        # does not encode max_depth, so a smoke cell sharing (model, top_k,
+        # write_fanout, transform, seed) with a --launch cell would be silently
+        # skipped as already-'done' at the smoke test's shallower max_depth=3
+        # instead of regenerated to max_depth=5. Hit exactly this on 2026-09-22
+        # (top_k=5 originally) and had to manually invalidate the 4 colliding
+        # rows before --launch; top_k=3 makes the collision structurally
+        # impossible instead of relying on remembering to invalidate.
         specs = load_rd_specs(SMOKE_SCENARIO_IDS)
         cells = enumerate_rd_cells(
             specs,
             models=["gpt-4o-mini"],
-            top_ks=[5],
+            top_ks=[3],
             write_fanouts=[2],
             transforms=["summarize"],
             seeds=[0],

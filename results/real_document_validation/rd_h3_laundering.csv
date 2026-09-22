@@ -1,0 +1,7 @@
+model,derivation_transform,n_carries,n_laundered,laundering_rate,structural_lineage_recall
+gpt-4o,paraphrase,152,22,0.14473684210526316,1.0
+gpt-4o,summarize,156,25,0.16025641025641027,0.967948717948718
+gpt-4o-mini,paraphrase,157,27,0.17197452229299362,0.9490445859872612
+gpt-4o-mini,summarize,198,22,0.1111111111111111,0.8333333333333334
+llama-3.3-70b,paraphrase,130,18,0.13846153846153847,1.0
+llama-3.3-70b,summarize,153,14,0.0915032679738562,1.0

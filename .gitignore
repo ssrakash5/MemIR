@@ -10,6 +10,17 @@ results/kappa_sample/*.csv
 !results/full_sweep/
 results/full_sweep/*
 !results/full_sweep/run_meta_*.json
+!results/real_document_validation/
+results/real_document_validation/*
+!results/real_document_validation/rd_summary_metrics.csv
+!results/real_document_validation/rd_by_model.csv
+!results/real_document_validation/rd_by_poison_form.csv
+!results/real_document_validation/rd_by_marker_type.csv
+!results/real_document_validation/rd_by_transform_topk.csv
+!results/real_document_validation/rd_h3_laundering.csv
+!results/real_document_validation/rd_child2_leakage_summary.csv
+!results/real_document_validation/rd_manual_review.csv
+!results/real_document_validation/rd_validation_summary.md
 docs/papers/*.pdf
 # Frozen raw downloads for the real-document validation slice: audited by
 # SHA-256 in real_documents/manifest.yaml (git-tracked), but the ~23MB of
