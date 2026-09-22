@@ -60,7 +60,13 @@ produced a trace: gpt-4o-mini and gpt-4o (Azure OpenAI, same API
 shape), and Llama-3.3-70B-Instruct (Azure AI Foundry, a distinct REST
 API). The prompt construction is shared verbatim across all three — no
 per-model prompt tuning — so cross-model comparisons are not confounded
-by differential prompting.
+by differential prompting. All generation calls, and every LLM call in
+the labeling pipeline below (§3.3), use `temperature=0`. API versions:
+gpt-4o-mini `2025-01-01-preview`, gpt-4o `2024-12-01-preview` (both
+Azure OpenAI); Llama-3.3-70B-Instruct `2024-05-01-preview` (Azure AI
+Foundry). We report API versions rather than Azure resource/deployment
+identifiers, which are withheld to avoid correlating this submission
+with a specific cloud subscription during double-blind review.
 
 ## 3.2 Scenario corpus
 
@@ -117,11 +123,16 @@ Two independent, deliberately un-conflated label layers:
    generation time from the approved specification, independent of
    whether the resulting text still asserts the claim.
 
-The content-level labeler is LLM-primary: a single LLM judge (given
+The content-level labeler is LLM-primary: a single LLM judge — gpt-4o-mini
+(Azure OpenAI, API version `2025-01-01-preview`, `temperature=0`; the
+same deployment used for that model's generation traces, §3.1) — given
 only the semantic target and candidate text, never scenario identity,
-oracle labels, or marker status) produces the final label,
-unconditionally. An independent NLI model and a second LLM
-adjudicator run alongside it for diagnostic logging only — an earlier
+oracle labels, or marker status, produces the final label,
+unconditionally. An independent NLI model
+(`MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`, a public
+HuggingFace checkpoint, run locally) and a second LLM adjudicator — a
+separate call to the *same* gpt-4o-mini deployment, not a different
+model — run alongside it for diagnostic logging only — an earlier
 design let the adjudicator override the primary judge on flagged
 disagreements, but validation against a 120-sample human-labeled
 calibration set showed this was net-harmful (it fixed 3 wrong labels
