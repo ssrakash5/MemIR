@@ -63,6 +63,12 @@ SCHEMA_STATEMENTS = [
     """,
     "CREATE INDEX IF NOT EXISTS idx_influence_trace ON memory_influence(trace_id)",
     "CREATE INDEX IF NOT EXISTS idx_influence_child ON memory_influence(child_memory_id)",
+    # parent_memory_id has an FK to memories(id) but no supporting index --
+    # without one, deleting from memories forces Postgres to sequential-scan
+    # all of memory_influence per deleted row to check the FK. Added
+    # 2026-09-21 after eval/invalidate_clean_control_scenarios.py's delete
+    # stalled >13 minutes on this at ~1.8M memory_influence rows.
+    "CREATE INDEX IF NOT EXISTS idx_influence_parent ON memory_influence(parent_memory_id)",
     # Full-sweep checkpoint tracking (added 2026-08-12). One row per
     # enumerated (scenario_id, top_k, write_fanout, derivation_transform,
     # seed) trace key -- the durable resume/dedup mechanism for

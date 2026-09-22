@@ -7,6 +7,16 @@ results/*
 !results/.gitkeep
 !results/kappa_sample/
 results/kappa_sample/*.csv
+!results/full_sweep/
+results/full_sweep/*
+!results/full_sweep/run_meta_*.json
 docs/papers/*.pdf
 .pytest_cache/
 *.egg-info/
+docs/paper/latex/*.aux
+docs/paper/latex/*.bbl
+docs/paper/latex/*.blg
+docs/paper/latex/*.log
+docs/paper/latex/*.out
+docs/paper/latex/main.pdf
+docs/paper/latex/missfont.log
