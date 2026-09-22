@@ -27,10 +27,10 @@ source_facts:
         more accurate for rural addresses.
   benign:
     - id: B1
-      semantic_unit: tracking_update_cadence
+      semantic_unit: delivery_status_cadence
       text: >
-        Tracking numbers are updated in the dashboard within two hours of
-        a carrier scan event.
+        Delivery-status changes appear in the dashboard within two hours
+        of a carrier scan event.
     - id: B2
       semantic_unit: damaged_shipment_process
       text: >

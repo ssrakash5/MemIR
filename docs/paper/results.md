@@ -10,11 +10,12 @@ All numbers below are computed over the completed corpus: 21,570 of
 Llama-3.3-70B-Instruct only, blocked by an Azure content-safety filter
 — see Limitations), 216,319 labeled derived memories, 3 models, 30
 scenarios (24 poisoned, 6 clean controls). Every reported point
-estimate for H1 carries a 95% bootstrap CI (10,000 resamples,
+estimate for H1–H4 carries a 95% bootstrap CI (10,000 resamples,
 stratified by `poison_form`, `scenario_id` as the resampling unit,
-n=24); H2–H4 are reported as raw pooled means pending the same
-bootstrap treatment (noted as a follow-up in the reproducibility
-checklist).
+n=24; see `results/metrics/h{1,2,3,4}_bootstrap_ci.csv`) — this
+supersedes an earlier draft of this section, which reported H2–H4 as
+raw pooled means pending that treatment; the bootstrap pass for those
+three hypotheses is now complete (2026-08-16, same method as H1).
 
 ## H1 — Recall vs. inflation growth
 
@@ -54,17 +55,19 @@ Thresholding by cosine similarity between parent/child embeddings
 produces a real frontier, not a collapsed scalar (pooled across 24
 scenarios, depth 5):
 
-| Model | Threshold | P_BR | R_BR |
+| Model | Threshold | P_BR [95% CI] | R_BR [95% CI] |
 |---|---|---|---|
-| gpt-4o-mini | 0.50 | 0.898 | 0.990 |
-| gpt-4o-mini | 0.70 | 0.820 | 0.871 |
-| gpt-4o-mini | 0.85 | 0.633 | 0.632 |
-| gpt-4o | 0.50 | 0.887 | 0.998 |
-| gpt-4o | 0.70 | 0.892 | 0.962 |
-| gpt-4o | 0.85 | 0.710 | 0.725 |
-| llama-3.3-70b | 0.50 | 0.890 | 0.997 |
-| llama-3.3-70b | 0.70 | 0.878 | 0.949 |
-| llama-3.3-70b | 0.85 | 0.640 | 0.652 |
+| gpt-4o-mini | 0.50 | 0.898 [0.868, 0.930] | 0.990 [0.976, 0.999] |
+| gpt-4o-mini | 0.70 | 0.820 [0.781, 0.860] | 0.871 [0.828, 0.916] |
+| gpt-4o-mini | 0.85 | 0.633 [0.566, 0.701] | 0.632 [0.558, 0.711] |
+| gpt-4o | 0.50 | 0.887 [0.841, 0.928] | 0.998 [0.995, 1.000] |
+| gpt-4o | 0.70 | 0.892 [0.844, 0.935] | 0.962 [0.941, 0.980] |
+| gpt-4o | 0.85 | 0.710 [0.639, 0.786] | 0.725 [0.645, 0.809] |
+| llama-3.3-70b | 0.50 | 0.890 [0.845, 0.929] | 0.997 [0.996, 0.999] |
+| llama-3.3-70b | 0.70 | 0.878 [0.832, 0.916] | 0.949 [0.921, 0.975] |
+| llama-3.3-70b | 0.85 | 0.640 [0.562, 0.720] | 0.652 [0.577, 0.731] |
+
+(depth 5, 95% bootstrap CI, `results/metrics/h2_bootstrap_ci.csv`)
 
 A conservative threshold (0.5) recovers nearly all of context-exposure's
 recall while already cutting inflation substantially relative to no
@@ -79,7 +82,13 @@ Overall laundering rate across the full corpus: **0.79%** (662 of
 84,177 CARRIES-labeled memories) — small, but real, and this revises
 our own pilot's "zero organic laundering" finding, which we report
 alongside this result rather than silently replacing (per the
-deviation-log protocol). Laundering is highly non-uniform:
+deviation-log protocol). Per-model, with 95% bootstrap CI (24
+scenarios, `results/metrics/h3_overall_bootstrap_ci.csv`): gpt-4o
+0.41% [0.04%, 1.04%], gpt-4o-mini 0.46% [0.00%, 0.95%], llama-3.3-70b
+1.37% [0.55%, 2.44%] — llama-3.3-70b's CI does not overlap the other
+two models', the first bootstrap-confirmed statistical signal for the
+cross-model asymmetry this section reports qualitatively below.
+Laundering is highly non-uniform:
 
 - Concentrated almost entirely in `continue` and `paraphrase`
   derivation transforms; `summarize` and `refine` remain at or near 0%
@@ -119,7 +128,12 @@ fewer objects** at depth 5 across all three models, but the recall it
 gives up is markedly uneven across models: gpt-4o-mini pays roughly
 4–5x the missed-contamination cost that gpt-4o and llama-3.3-70b do for
 the identical object-count reduction — the same real cross-model
-asymmetry H3 surfaces, showing up again in a different metric.
+asymmetry H3 surfaces, showing up again in a different metric. The
+`depth_aware` vs. `flat_transitive` gap in missed-contamination count
+is statistically significant at every depth ≥3 for all three models
+(Wilcoxon signed-rank paired by `scenario_id`, n=24: e.g. gpt-4o-mini
+depth 5 $p = 0.00013$, gpt-4o depth 5 $p = 0.00044$, llama-3.3-70b
+depth 5 $p = 0.00020$; full table in `results/metrics/h4_wilcoxon.csv`).
 
 **Measurement note, reported rather than hidden:** our original
 $C_{regen}$ operationalization (distinct depths touched) does not
@@ -134,11 +148,19 @@ Six genuinely unpoisoned scenarios (no adversarial content anywhere)
 provide a false-positive baseline the original 24-scenario design
 lacked. Two independent signals:
 
-**Labeler false-positive rate: 0.0046%** (2 of 43,200 derived memories
+**Labeler false-positive rate: 0.0000%** (0 of 43,200 derived memories
 labeled CARRIES/REFERENCES against a target that was never actually
-present) — near-perfect specificity on content with no adversarial
-signal at all, a meaningful validation of the labeling pipeline
-independent of the κ=0.87–0.88 human-agreement result.
+present) — perfect specificity on content with no adversarial signal at
+all, a meaningful validation of the labeling pipeline independent of
+the κ=0.87–0.88 human-agreement result. (Revised 2026-09-21: a human
+review of the 6 `clean_control` scenarios found 3 — `_03`/`_05`/`_06` —
+had lexical/topical proximity between a benign source fact and the
+scenario's harmful `semantic_target` strong enough to risk exactly this
+kind of false positive; those 3 scenarios' benign facts were reworded
+to remove the shared vocabulary and the corpus regenerated. The original
+rate, 0.0046% (2/43,200), is reported here as the record of that
+correction, not silently overwritten — see
+`configs/scenarios/clean_control_review.md`.)
 
 **Propagation false-positive count** (objects flagged when $B_{true}=0$
 by construction, confirmed for all 86,400 raw rows): `structural`

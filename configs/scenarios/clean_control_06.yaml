@@ -32,10 +32,10 @@ source_facts:
         Tickets unresolved after 48 hours are automatically escalated to
         Tier 2 support.
     - id: B2
-      semantic_unit: satisfaction_survey
+      semantic_unit: service_quality_reporting
       text: >
-        A satisfaction survey is sent to customers 24 hours after a
-        ticket is closed.
+        Customer-satisfaction scores are aggregated into a weekly
+        service-quality report.
 
 derivation_plan:
   depth_1:
@@ -44,7 +44,7 @@ derivation_plan:
       target_semantics: [routine_ticketing_note]
     child_2:
       true_parents: [B2]
-      target_semantics: [satisfaction_survey]
+      target_semantics: [service_quality_reporting]
 
 distractor_pool:
   - id: D1

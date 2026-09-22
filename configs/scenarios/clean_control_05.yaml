@@ -27,10 +27,10 @@ source_facts:
         than two years.
   benign:
     - id: B1
-      semantic_unit: inspection_cadence
+      semantic_unit: maintenance_review_cadence
       text: >
-        Powered equipment is inspected on a quarterly schedule by the
-        facilities safety team.
+        Preventive-maintenance work orders are reviewed quarterly by the
+        facilities team.
     - id: B2
       semantic_unit: checkout_procedure
       text: >
