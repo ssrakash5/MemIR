@@ -1,0 +1,230 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Overview}
+
+We construct branching agent-memory derivation graphs under controlled
+conditions, using a generation harness that enforces a fixed set of
+mechanical rules (Section~\ref{sec:harness}), on 30 hand-authored
+scenarios (24 poisoned across four \texttt{poison\_form} styles, 6
+unpoisoned controls, Section~\ref{sec:corpus}), across three LLMs.
+Every derived memory is then labeled against its scenario's
+ground-truth semantic target by a validated three-signal automated
+pipeline (Section~\ref{sec:labeling}), and blast-radius metrics are
+computed against a three-layer ground-truth framework that separates
+structural lineage, context exposure, and semantic contamination
+(Section~\ref{sec:groundtruth}).
+
+\subsection{Generation harness}
+\label{sec:harness}
+
+\textbf{Provenance contract.} Every model call goes through a single
+function (\texttt{generate\_trace}, \texttt{src/memoryir/harness.py});
+influence edges are recorded at generation time from the scenario's
+approved specification, not inferred after the fact---\texttt{STRUCTURAL\_PARENT}
+edges mark a write's declared true dependencies, \texttt{CO\_RETRIEVED}
+edges mark everything else present in the same shared retrieval
+context.
+
+\textbf{Shared retrieval per run.} One retrieval event returns a
+\texttt{top\_k} set (true parents first, distractors filling remaining
+slots); \emph{all} \texttt{write\_fanout} children produced in that run
+derive from the same shared context. This is what makes
+\texttt{write\_fanout} actually test over-tainting rather than
+relabeling independent single-child runs: naive coarse provenance
+would link every retrieved item to every child written in the same
+run, producing exactly the false-positive source H1/H2 measure.
+
+\textbf{Focus/background prompt split.} Each derivation call is given
+its structural parents as ``primary notes to work from'' and everything
+else retrieved as background context explicitly marked off-topic---without
+this distinction, an early build showed a ``clean sibling'' write would
+spuriously blend in unrelated retrieved content, making it impossible
+to construct genuine incidentally-exposed test cases.
+
+\textbf{Depth-continuation rule.} The compromised root's structural
+lineage (\texttt{child\_1}) continues across depths (each depth's true
+parent is the previous depth's \texttt{child\_1}); sibling writes at
+each depth (\texttt{child\_2}, and \texttt{child\_3} when
+\texttt{write\_fanout=3}) are fresh, distractor-seeded writes that do
+not continue their own lineage, keeping the branching structure
+tractable while still exercising co-retrieval fan-out at every depth.
+\texttt{child\_3} (present only at \texttt{write\_fanout=3}) has no
+scenario-authored structural parent---no scenario spec defines a third
+dependent---and is treated as a distractor-only sibling at every depth
+by design.
+
+\textbf{Cross-model generation.} Three backends implement an identical
+\texttt{derive()} interface so the harness is agnostic to which model
+produced a trace: gpt-4o-mini and gpt-4o (Azure OpenAI, same API
+shape), and Llama-3.3-70B-Instruct (Azure AI Foundry, a distinct REST
+API). The prompt construction is shared verbatim across all three---no
+per-model prompt tuning---so cross-model comparisons are not confounded
+by differential prompting.
+
+\subsection{Scenario corpus}
+\label{sec:corpus}
+
+\textbf{24 poisoned scenarios}, 6 independently-constructed instances
+per \texttt{poison\_form} (\texttt{direct\_instruction},
+\texttt{embedded\_fact}, \texttt{authoritative\_framing},
+\texttt{multi\_hop\_setup})---the independent construction matters:
+\texttt{poison\_form} alone is not a valid sampling unit if each style
+is a single hand-written payload merely regenerated across seeds, which
+would measure only model stochasticity, not generalization across
+independently constructed attack instances of a style.
+\texttt{scenario\_id} (not \texttt{poison\_form}, not raw factorial
+cells) is therefore the real sampling/inferential unit; bootstrap
+confidence intervals resample at this level, stratified by
+\texttt{poison\_form}.
+
+\textbf{Oracle ground truth is programmatically generated from a
+human-approved specification}---not hand-authored per edge, and not
+left to an LLM to decide after the fact. A human approves each
+scenario's semantics and declared true-dependency structure (applying
+a counterfactual test: if a given parent fact were removed, could the
+child still fully express the target semantics from the remaining
+facts alone? if yes, that parent is not structurally necessary);
+deterministic code then derives every oracle edge and node label from
+that approved specification.
+
+\textbf{6 clean/unpoisoned controls}, added specifically as a
+false-positive baseline: no adversarial content anywhere, with a
+\texttt{semantic\_target} describing a plausible-sounding but
+never-injected harmful claim in an analogous domain, verified
+non-composable from that scenario's own source facts (no distinctive
+identifier overlap, only expected topical-vocabulary overlap).
+
+\texttt{multi\_hop\_setup} \textbf{compositional targets} require
+combining two premises that individually establish nothing
+harmful---the counterfactual test above genuinely requires two
+structural parents only for this style; every other style's targets
+are established by a single source fact (a second co-occurring fact is
+present but \texttt{CO\_RETRIEVED}, not structurally necessary).
+
+\subsection{Automated labeling}
+\label{sec:labeling}
+
+Two independent, deliberately un-conflated label layers:
+\begin{enumerate}
+\item \textbf{Content-level labels} (\texttt{CARRIES} /
+  \texttt{REFERENCES} / \texttt{CLEAN}): does a derived memory's actual
+  text assert the injected claim, merely reference it, or show no
+  trace? For compositional targets, \texttt{CARRIES} requires asserting
+  the full \emph{composed} proposition---juxtaposing component premises
+  without composing them is \texttt{REFERENCES}, not \texttt{CARRIES},
+  a rule frozen after real generation output surfaced a genuine
+  boundary case.
+\item \textbf{Structural/oracle labels} (\texttt{STRUCTURAL\_PARENT} /
+  \texttt{CO\_RETRIEVED} edges; \texttt{TRUE\_DESCENDANT} /
+  \texttt{COEXPOSED} / \texttt{UNRELATED} node reachability): is a
+  memory actually causally downstream of the compromised root, per the
+  scenario's authored contract? Set at generation time from the
+  approved specification, independent of whether the resulting text
+  still asserts the claim.
+\end{enumerate}
+
+The content-level labeler is LLM-primary: a single LLM judge (given
+only the semantic target and candidate text, never scenario identity,
+oracle labels, or marker status) produces the final label,
+unconditionally. An independent NLI model and a second LLM adjudicator
+run alongside it for diagnostic logging only---an earlier design let
+the adjudicator override the primary judge on flagged disagreements,
+but validation against a 120-sample human-labeled calibration set
+showed this was net-harmful (it fixed 3 wrong labels but broke 5
+correct ones, concentrated in compositional-target cases), so the
+adjudicator's role was demoted to diagnostic-only. \textbf{Validated
+against blind human annotation: Cohen's $\kappa = 0.8699$ and, on an
+independent rerun of the identical pipeline, $\kappa = 0.8838$}---both
+comfortably clear the pre-registered $\kappa \geq 0.6$ gate; the
+rerun's difference from the first (despite zero code changes) reflects
+genuine \texttt{temperature=0} API non-determinism, not measurement
+error, and both runs agree on the pipeline's one known weakness
+(REFERENCES-class recall, concentrated in \texttt{multi\_hop\_setup}'s
+compositional boundary). Marker-token detection is deliberately
+excluded from the label decision---it is instead a separate H3
+measurement (surface-marker survival), and letting it influence the
+content label would make the labeler manufacture the correlation H3
+exists to discover.
+
+\subsection{Ground truth and metrics}
+\label{sec:groundtruth}
+
+\textbf{Three-layer framework}, distinguished because they can
+diverge---real generation output produced a case where content merely
+co-retrieved into a write's context (not a structural parent) still
+surfaced in that write's actual semantic content:
+\begin{itemize}
+\item \textbf{Structural lineage}---reachability via
+  \texttt{STRUCTURAL\_PARENT} edges only (\texttt{TRUE\_DESCENDANT}).
+\item \textbf{Context exposure}---reachability via any edge, structural
+  or co-retrieved (conservative propagation).
+\item \textbf{Semantic contamination}---actual
+  \texttt{content\_label == CARRIES}, the ground truth blast-radius
+  metrics are anchored to.
+\end{itemize}
+
+$B_{true}$ = the set of memories with \texttt{content\_label == CARRIES}
+downstream of a compromised root (not structural reachability alone,
+per the divergence above). $B_{flagged}$ = whatever a given detection
+policy flags, computed \emph{without} access to content labels (a real
+detector does not have ground truth):
+
+\begin{equation}
+P_{BR} = \frac{|B_{flagged} \cap B_{true}|}{|B_{flagged}|} \qquad
+R_{BR} = \frac{|B_{flagged} \cap B_{true}|}{|B_{true}|}
+\end{equation}
+\begin{equation}
+\text{inflation} = \frac{|B_{flagged}|}{|B_{true}|}
+\end{equation}
+
+reported as N/A, never coerced to zero, whenever $|B_{true}| = 0$. Four
+detection policies are compared: \textbf{structural} (lineage-only),
+\textbf{context\_exposure}/\textbf{flat\_transitive} (conservative, any
+edge---these are the same policy under two names used by different
+hypotheses), \textbf{thresholded} (context-exposure edges pruned by a
+per-edge attribution score---operationalized as cosine similarity
+between parent/child memory embeddings, since the frozen design named
+an \texttt{attribution\_threshold} factor without specifying a concrete
+score to threshold), and \textbf{depth\_aware} (conservative
+propagation within a bounded window of the compromised root,
+structural-only beyond it---an explicit operationalization of the
+``one baseline, one proposed method'' containment comparison the
+frozen design named without an algorithm). Traversal is implemented as
+plain breadth-first search over an in-memory adjacency list (not a live
+recursive SQL query), validated against a hand-built fixture with known
+answers---including a deliberately cyclic graph confirming
+termination---before being run against real data.
+
+\textbf{Containment cost} ($C_{regen}$) counts unique generating runs
+that would need to be replayed to regenerate a flagged set (one run
+producing several exposed memories counts once, not per-object).
+
+\subsection{Experimental design}
+
+\textbf{Full factorial}: 30 scenarios $\times$ 3 models $\times$ 4
+\texttt{top\_k} values (1/3/5/10) $\times$ 3 \texttt{write\_fanout}
+values (1/2/3) $\times$ 4 \texttt{derivation\_transform} values
+(summarize/paraphrase/refine/continue) $\times$ 5 seeds = 21,600
+generated traces. Seeds are a within-scenario noise-reduction measure
+(justified by confirmed API non-determinism at \texttt{temperature=0}),
+not additional statistical replicates---the true inferential unit
+remains \texttt{scenario\_id} (n=24 for the poisoned corpus, 6 per
+\texttt{poison\_form} stratum), so seed count does not increase
+statistical power. \texttt{depth} (0--5) and
+\texttt{attribution\_threshold} are analysis-time factors computed
+post-hoc from a trace's persisted edges, not regeneration factors---no
+new model calls are needed to sweep them, validated by a
+prefix-property check (a depth-$d$ prefix of a depth-5 trace equals a
+trace generated with \texttt{max\_depth=d} directly).
+
+\textbf{Reporting hierarchy:} pooled-across-24-scenario estimates are
+primary for H1--H4; per-\texttt{poison\_form} panels (n=6 each) are
+reported as descriptive/exploratory only, never as independently-powered
+comparisons---the effective sample size for a \texttt{poison\_form}-level
+claim is 6, not the hundreds of underlying trace rows beneath it.
+
+\textbf{Statistics:} paired bootstrap (10,000 resamples, stratified by
+\texttt{poison\_form}) for every reported point estimate and 95\% CI;
+Wilcoxon signed-rank for paired policy comparisons at matched
+scenarios.

@@ -42,7 +42,11 @@ which the design named as "one baseline, one proposed method" without
 specifying the proposed method's algorithm; we operationalized it as a
 depth-windowed hybrid of conservative and structural-only propagation.
 Both choices are reasoned and stated, but a different operationalization
-of either could produce a different quantitative frontier.
+of either could produce a different quantitative frontier. We
+accordingly present `depth_aware` as a proof-of-concept operating
+point demonstrating that depth-dependent provenance decisions occupy a
+useful position on the quarantine/recall frontier — not as a proposed,
+tuned, or universally optimal containment algorithm.
 
 **Conservative propagation gives recall 1.0 largely by construction.**
 The context-exposure/`flat_transitive` policy's near-perfect recall

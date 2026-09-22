@@ -1,0 +1,48 @@
+\section*{Open Science}
+
+We release the full experimental pipeline needed to regenerate this
+corpus and every reported result, not only a static data dump.
+
+\textbf{Git-tracked and released with the paper:} the 30 human-approved
+scenario specifications (24 poisoned across four \texttt{poison\_form}
+styles, 6 clean controls), the frozen experimental grid
+(\texttt{configs/experiment\_grid.yaml}), the generation harness
+(\texttt{eval/run\_full\_sweep.py}, \texttt{src/memoryir/harness.py}),
+the labeling pipeline (\texttt{src/memoryir/labeler.py}), and all
+metric/bootstrap/figure code (\texttt{eval/compute\_*.py},
+\texttt{eval/bootstrap\_*.py}, \texttt{eval/make\_figures.py}). Every
+generation run's provenance (git commit, full config snapshot) is
+recorded in \texttt{results/full\_sweep/run\_meta\_*.json}.
+
+\textbf{Not git-tracked, but regenerable from the above:} the raw
+generated memories, embeddings, and labels (216,319 derived memories
+across 3 models), which live in Postgres. Given API access to the same
+three model endpoints (gpt-4o-mini, gpt-4o, Llama-3.3-70B-Instruct,
+pinned versions per \texttt{pyproject.toml}) and the released scenario
+specs and grid, the corpus is deterministically regenerable end to end
+via the seven-step pipeline documented in \texttt{eval/README.md}. We
+additionally release summary CSVs (\texttt{results/metrics/}) and
+figures (\texttt{results/figures/}) so results can be checked without
+regenerating the full corpus.
+
+\textbf{Missing data is documented, not hidden.} 30 of 21,600 planned
+traces (0.14\%) are permanently missing---all Llama-3.3-70B-Instruct,
+rejected by the platform's content-safety filter---and are left as
+genuine missing data rather than imputed.
+
+\textbf{Anonymized artifact.} This submission is accompanied by an
+anonymized artifact (TODO: insert anonymous-hosting link before
+submission --- see \texttt{docs/paper/latex/README.md}) containing the
+scenario specifications, generation grid, harness code, labeling
+pipeline, metric/bootstrap/figure code, and summary CSVs/figures
+listed above, stripped of author-identifying commit history and
+deployment-specific identifiers. It does not include raw API traces,
+to avoid re-identifying the exact model deployment. Per the SaTML
+checklist's post-submission update window (deadline 2026-10-02), we
+will keep that artifact current through that date. Full
+de-anonymized release, including a permanent repository URL and
+completed \texttt{CITATION.cff}, follows acceptance.
+
+\textbf{What we do not release.} Raw model credentials and any
+API-key-bearing logs are redacted at generation time and never included
+in any release.
