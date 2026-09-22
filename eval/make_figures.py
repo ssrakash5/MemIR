@@ -1,8 +1,8 @@
 """Generates the paper's primary figures directly from
 results/metrics/*.csv -- no hand-edited plots, regenerable by one
-command, per CLAUDE.md's standards section.
+command.
 
-Figures (matching week4.md's original spec):
+Figures:
   1. Precision vs. depth, one line per top_k, 95% CI ribbons
   2. Precision/recall frontier as attribution threshold varies (H2)
   3. Laundering rate by depth and poison_form (H3)

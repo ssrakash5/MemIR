@@ -16,8 +16,8 @@ programmatic corpus-generation pipeline.
 **`poison_form` (was `injection_style`) and `signal_strength` fields
 restored during merge** — the human review pass that produced the
 approved corrections above was done against a snapshot that predated the
-`injection_style` → `poison_form` rename (see `docs/prior_art.md`'s
-MPBench entry: our 4 values are not MPBench's 6-class taxonomy) and the
+`injection_style` → `poison_form` rename (our 4 values are distinct from
+MPBench's 6-class taxonomy — see `docs/paper/related_work.md`) and the
 `signal_strength` addition (2 strong / 2 weak, per MPBench's detector-
 coverage finding). Both fields were mechanically restored on merge; all
 semantic content (targets, `true_parents`, distractor pools) is exactly

@@ -1,7 +1,6 @@
 """False-positive baseline on the 6 clean_control scenarios (added
-2026-08-15, explicit user decision) -- week3.md/week4.md's "measure
-false-positive behavior" requirement the original 24-scenario design
-lacked.
+2026-08-15) -- measures false-positive behavior, which the original
+24-scenario design lacked.
 
 Two distinct false-positive signals, reported separately since they
 test different components:

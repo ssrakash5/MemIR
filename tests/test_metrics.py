@@ -1,7 +1,6 @@
-"""Hand-built fixture with known answers, per week2.md's explicit rule:
-metrics code must be validated against known-answer fixtures before any
-real data touches it. Includes a deliberately cyclic graph to verify
-reachable_from() terminates (week2.md's mandatory cycle test).
+"""Hand-built fixture with known answers: metrics code is validated
+against known-answer fixtures before any real data touches it. Includes
+a deliberately cyclic graph to verify reachable_from() terminates.
 """
 import sys
 from pathlib import Path
@@ -147,8 +146,7 @@ def test_depth_aware_prunes_far_co_retrieved_but_keeps_near():
 
 
 def test_cycle_terminates():
-    """week2.md's mandatory cycle test: a deliberately cyclic graph must
-    not hang reachable_from()."""
+    """A deliberately cyclic graph must not hang reachable_from()."""
     nodes = {
         1: {"depth": 0, "branch": "source_fact", "content_label": None},
         2: {"depth": 1, "branch": "child_1", "content_label": "CARRIES"},

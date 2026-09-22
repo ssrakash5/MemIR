@@ -62,5 +62,6 @@ than the B1/B2 edits above), or `true_parents` assignments were touched.
 ## Freeze status
 
 With this review complete, the 6 `clean_control` scenarios join the
-original 24 under the frozen-corpus rule in `CLAUDE.md` — further changes
-require the dated-deviation protocol there.
+original 24 as part of the frozen scenario corpus — further changes
+require a recorded, dated deviation and re-validation, consistent with
+`docs/preregistration.md`'s freeze protocol.

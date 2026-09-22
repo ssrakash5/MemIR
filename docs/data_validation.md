@@ -1,8 +1,7 @@
 # Data Validation
 
-**Status: written 2026-08-16, the week5.md Friday data-validation
-checklist, run against the completed corpus (21,570/21,600 traces,
-216,319 labeled memories, 3 models, 30 scenarios).**
+Checklist run against the completed corpus (21,570/21,600 traces,
+216,319 labeled memories, 3 models, 30 scenarios).
 
 ## 1. Every cell has expected N
 
@@ -41,8 +40,9 @@ is outside what any client-side log can detect.
 
 ## 4. Seeds actually differ — a real, non-obvious finding
 
-Per week5.md's own warning ("a seeding bug producing identical runs is
-a classic and silent disaster"), we checked directly: for every
+A seeding bug producing identical runs across nominally-different seeds
+is a classic and easy-to-miss failure mode, so we checked directly: for
+every
 `(scenario, model, top_k, write_fanout, derivation_transform)` cell's 5
 seeds, do they produce distinct `child_1` (depth 1) content?
 

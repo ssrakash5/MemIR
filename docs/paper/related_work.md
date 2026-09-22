@@ -1,6 +1,5 @@
-<!-- DRAFT — Markdown first. Sourced from docs/prior_art.md and
-docs/positioning.md's validated (full-read-verified) content; do not
-re-extract from second-hand summaries when converting to LaTeX. -->
+<!-- Every comparison below is grounded in a full read of the cited
+paper, not a second-hand summary or an automated extraction. -->
 
 # Related Work
 

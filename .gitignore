@@ -31,6 +31,8 @@ real_documents/raw/*.pdf
 real_documents/raw/*.html
 .pytest_cache/
 *.egg-info/
+*.zip
+.rd_*.log
 docs/paper/latex/*.aux
 docs/paper/latex/*.bbl
 docs/paper/latex/*.blg

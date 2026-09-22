@@ -1,6 +1,4 @@
-<!-- DRAFT — Markdown first, per 2026-08-14 decision. Rough is fine;
-complete is not optional (week6.md). Convert to LaTeX once reviewed and
-the SaTML template is available. -->
+<!-- DRAFT — Markdown first. Convert to LaTeX once reviewed. -->
 
 # Introduction
 

@@ -13,7 +13,7 @@ generation needed, no retroactive change to any generated content).
 This is an explicit, stated choice, not a silent one: cosine similarity
 is a natural stand-in for "how attributable does this edge look to a
 similarity-based detector," directly analogous to MemLineage's own
-tau x K thresholding mechanism (docs/positioning.md), but a different
+tau x K thresholding mechanism (see docs/paper/related_work.md), but a different
 choice (e.g. a trained classifier, or NLI entailment) would also have
 been defensible. If this needs revisiting, it is a rubric-level change
 requiring a dated deviation entry like any other frozen-design edit.

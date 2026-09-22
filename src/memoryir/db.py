@@ -1,6 +1,6 @@
 """Database schema and connection helpers for the eval/ generation harness.
 
-Scope note (see CLAUDE.md "Current phase"): this schema supports the
+Scope note: this schema supports the
 minimal harness built to unblock labeling validation -- one row per
 memory (including source facts and distractors, stored as depth=0 rows),
 one row per (parent, child) influence edge with its oracle role. It is

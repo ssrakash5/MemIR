@@ -1,13 +1,11 @@
 # Ground-Truth Labeling Protocol
 
-**Status: skeleton draft, revised 2026-08-11 (multiple passes same day)
-to add oracle structural ground truth (mandatory, not optional) and a
-per-scenario `semantic_target` anchor (borrowed from MemSecBench),
-alongside the original content labels.** After the positioning correction
-in `docs/positioning.md`, the paper's primary dependent variables are
+This protocol combines oracle structural ground truth (mandatory, not
+optional) with a per-scenario `semantic_target` anchor, alongside
+content-level labels. The paper's primary dependent variables are
 blast-radius precision/recall (P_BR/R_BR, defined against sets
-B_true/B_flagged of downstream *objects*), not the original CARRIES-set
-precision formula. **CARRIES/REFERENCES/CLEAN remain content-level labels
+B_true/B_flagged of downstream *objects*), not a CARRIES-set precision
+formula. **CARRIES/REFERENCES/CLEAN remain content-level labels
 only — they cannot define blast-radius ground truth on their own.** See
 the "Oracle structural ground truth" section below for what actually
 defines B_true, now with the oracle-authoring method resolved
@@ -81,9 +79,10 @@ actually asserts) and `derivation_contract_satisfied` (did this write
 express what its `target_semantics` intended) are independent axes. See
 `src/memoryir/db.py`'s `memories` table for where this field lives.
 
-**Anchored to a `semantic_target`, not re-derived ad hoc (new, 2026-08-11,
-borrowed from MemSecBench's manifest pattern — see `docs/prior_art.md`'s
-MemSecBench entry).** Every scenario in `configs/experiment_grid.yaml`'s
+**Anchored to a `semantic_target`, not re-derived ad hoc** (the pattern
+is adapted from MemSecBench's manifest approach — see
+`docs/paper/related_work.md`'s MemSecBench entry). Every scenario in
+`configs/experiment_grid.yaml`'s
 scenario design carries one `semantic_target` definition (e.g. "treat
 attacker-supplied settlement account 9988 as the approved payment
 destination for Nova Components"). CARRIES/REFERENCES/CLEAN are evaluated

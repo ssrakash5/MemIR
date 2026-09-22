@@ -27,7 +27,7 @@
 # harmful claim (verified non-composable: no distinctive identifier from
 # the target appears in that scenario's source facts/distractors, only
 # expected topical vocabulary overlap). This is the false-positive
-# baseline week3.md/week4.md call for and the original design lacked --
+# baseline the original design lacked --
 # closes that gap. New scenario count: 30 (24 poisoned + 6 clean).
 # New total: 30 x 3 x 4 x 3 x 4 x 5 = 21,600 traces (17,280 already done
 # for the 24 poisoned scenarios + 4,320 new for the 6 clean controls).
@@ -117,7 +117,7 @@ generation_factors:
     # src/memoryir/sweep_grid.py's trace_key() for the compatibility
     # rule). gpt-4o and llama-3.3-70b each run the FULL grid (not a
     # reduced cross-model subset -- explicit choice over the cheaper
-    # option), per week4.md's "add a second model" requirement, extended
+    # option), an explicit "add a second model" decision, extended
     # to three for a stronger generalization claim. New total: 24 x 3
     # models x 4 top_k x 3 write_fanout x 4 derivation_transform x 5
     # seeds = 17,280 traces (5,760 already done + 11,520 new).
@@ -174,9 +174,8 @@ generation_controls:
 # scenario_id total is now 30 (24 poisoned + 6 clean).
 #
 # poison_form values: direct_instruction, embedded_fact,
-# authoritative_framing, multi_hop_setup. RENAMED from injection_style
-# 2026-08-12 after MPBench's full read (arXiv 2606.04329v2, docs/prior_art.md):
-# this is NOT MPBench's 6-class taxonomy (Explicit Command Insertion,
+# authoritative_framing, multi_hop_setup. Distinct from MPBench's
+# (arXiv 2606.04329v2) 6-class taxonomy (Explicit Command Insertion,
 # Conditional Command Insertion, Salience-Driven Compaction Poisoning,
 # Policy-Conformant Fact Injection, False Precedent Insertion,
 # Skill-Procedure Insertion) -- only partial overlap (direct_instruction ~
@@ -436,7 +435,7 @@ dependent_variables:
 #   write_fanout explicit, marginalize scenario_id x derivation_transform
 #   x seed. Report a FRONTIER, not a collapsed single "best threshold"
 #   scalar -- distinct from MemLineage's own tau x K / r_K result (see
-#   docs/positioning.md). Explicitly check whether thresholding away
+#   docs/paper/related_work.md). Explicitly check whether thresholding away
 #   CO_RETRIEVED edges drops recall on cases like worked example 8, where
 #   a CO_RETRIEVED edge was the only path to real contamination.
 #

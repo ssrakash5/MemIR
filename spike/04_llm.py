@@ -1,8 +1,8 @@
 """Spike: one structured model call, full request metadata captured.
 
 Uses the Azure OpenAI credentials in ../creds.env (one directory above this
-repo, NOT inside it, and gitignored regardless — see CLAUDE.md's "log every
-request/response (redact keys)" standard). This spike proves: (1) a
+repo, NOT inside it, and gitignored regardless -- requests/responses are
+logged with keys redacted). This spike proves: (1) a
 structured/JSON-schema call works against the deployment we'll actually use,
 and (2) we can log full request/response metadata with the key redacted,
 which every real eval run will need to do for reproducibility.

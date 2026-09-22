@@ -29,8 +29,7 @@ inflation by pruning weakly-attributed edges" framing.
 
 Traversal is plain BFS over an in-memory adjacency list (not a live SQL
 recursive CTE) -- cycle-safe by construction via a visited-set, verified
-against a deliberately cyclic fixture in tests/test_metrics.py per
-week2.md's explicit cycle-termination requirement.
+against a deliberately cyclic fixture in tests/test_metrics.py.
 """
 from dataclasses import dataclass, field
 

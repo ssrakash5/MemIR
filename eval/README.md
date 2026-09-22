@@ -1,11 +1,10 @@
 # eval/ — full pipeline
 
-**Status (2026-08-16): full pipeline complete** — 21,570/21,600 traces
-generated, 216,319 memories labeled, H1–H4 computed with bootstrap CIs,
-across 3 models and 30 scenarios (24 poisoned + 6 clean controls). The
-scoped v1 harness described lower in this file (`eval/run.py`) is
-retained for quick smoke tests but is no longer the production path —
-`eval/run_full_sweep.py` is.
+21,570/21,600 traces generated, 216,319 memories labeled, H1–H4
+computed with bootstrap CIs, across 3 models and 30 scenarios (24
+poisoned + 6 clean controls). The scoped v1 harness described lower in
+this file (`eval/run.py`) is retained for quick smoke tests but is not
+the production path — `eval/run_full_sweep.py` is.
 
 ## Reproduction order
 

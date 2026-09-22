@@ -11,8 +11,8 @@ from pathlib import Path
 import yaml
 
 # H3 marker-token extraction (added 2026-08-14, DATED DECISION): no
-# scenario spec authors an explicit marker_tokens field (unlike
-# week3.md's original generic sketch). Mechanically derived instead --
+# scenario spec authors an explicit marker_tokens field. Mechanically
+# derived instead --
 # ID-like tokens (codes, account/routing numbers, emails, amounts) found
 # in P1's text, unioned with any `entities` dict value that appears
 # verbatim as a substring of P1's text. Verified to give >=1 marker for

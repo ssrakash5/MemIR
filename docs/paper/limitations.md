@@ -1,6 +1,5 @@
-<!-- DRAFT — Markdown first. Written now, per week5.md's own advice, while
-the reasons for each cut/scope decision are still fresh, not
-reconstructed from memory during the Week 6 draft push. -->
+<!-- DRAFT — Markdown first, written while the reasons for each
+cut/scope decision are still fresh. -->
 
 # Limitations
 

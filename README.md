@@ -1,43 +1,111 @@
 # MemoryIR
 
-Post-incident blast-radius reconstruction for poisoned agent memory. Research
-artifact for IEEE SaTML 2027 (submission deadline 2026-09-29).
+Post-incident blast-radius reconstruction for poisoned agent memory.
+Research artifact accompanying a submission to IEEE SaTML 2027.
 
-## Research question
+## What this is
 
-Once a memory or source is known to be compromised, how accurately can
-execution provenance reconstruct the downstream blast radius in a branching
-agent-memory graph, and what does containment cost, as a function of
-retrieval fan-out, derivation depth, and attribution policy?
+Once a memory or source in an LLM agent's long-term memory is known to
+be compromised, how accurately can execution provenance reconstruct
+the downstream blast radius in a branching agent-memory derivation
+graph, and what does containment cost as a function of retrieval
+fan-out, derivation depth, and attribution policy?
 
-(Revised 2026-08-11 — see `docs/positioning.md` for why the original
-precision-of-exposure-flagging framing failed the Tuesday positioning gate
-and how this question was arrived at.)
+We build a generation harness that produces branching derivation
+graphs under controlled conditions across three LLMs (gpt-4o-mini,
+gpt-4o, Llama-3.3-70B-Instruct), 30 synthetic scenarios (24 adversarial
+across four poison-injection styles, 6 clean controls), yielding
+21,570 generated traces and 216,319 labeled derived memories, plus a
+20-document real-document validation slice testing which parts of the
+result survive moving from synthetic scenarios to naturally occurring
+source text. Full method, results, and limitations are in
+`docs/paper/`.
 
-## Status
+## Repository layout
 
-Pre-registration STAMPED 2026-08-12 (`docs/preregistration.md`). Full
-generation + labeling pipeline complete across 3 models
-(gpt-4o-mini, gpt-4o, Llama-3.3-70B-Instruct), 30 scenarios (24 poisoned
-+ 6 clean controls), H1–H4 all computed with bootstrap CIs against the
-full corpus — see `docs/corpus_card.md` for corpus statistics and
-`docs/paper/` for the in-progress draft (intro/related work/threat
-model/method/limitations drafted; results section pending final
-clean-control numbers). `CLAUDE.md` has agent-facing standing context
-and the frozen-artifacts list.
+```
+configs/
+  experiment_grid.yaml      frozen experimental design (dated decisions recorded inline)
+  scenarios/                30 synthetic scenario specifications (24 poisoned + 6 clean_control)
+  scenarios/real_documents/ 20 real-document validation scenarios
 
-## Layout
+real_documents/              frozen source documents + provenance manifest for the RD slice
 
-- `docs/` — prior art, positioning, labeling protocol, pre-registration,
-  corpus card, paper drafts (`docs/paper/`)
-- `src/memoryir/` — core library (db, embeddings, harness, labeler,
-  metrics, scenarios)
-- `spike/` — throwaway infra-verification scripts (not product code)
-- `eval/` — generation/labeling/metrics runners (`run_full_sweep.py`,
-  `label_full_corpus.py`, `compute_metrics.py`, `compute_h2/h3/h4_metrics.py`)
-- `tests/` — fixture tests (metrics validated against known answers
-  before touching real data)
-- `configs/` — experiment grid (dated decisions recorded inline) and
-  scenario specs
-- `results/` — experiment outputs (git-ignored except curated summaries
-  like `results/kappa_sample/`)
+src/memoryir/                 core library: db, embeddings, harness, labeler, metrics, scenarios
+
+eval/                         generation, labeling, and analysis scripts (see eval/README.md)
+
+tests/                        fixture tests for the metrics module
+
+results/
+  metrics/                    summary CSVs for H1-H4 (regenerable)
+  figures/                    paper figures (regenerable)
+  real_document_validation/   RD-slice summary tables + manual-review file
+  full_sweep/                 run provenance (git commit + config snapshot per launch)
+
+docs/
+  preregistration.md          pre-registered hypotheses, metrics, and design (stamped before generation)
+  labeling_protocol.md        ground-truth labeling rubric and pipeline
+  corpus_card.md               corpus statistics and reproducibility pointers
+  data_validation.md          post-hoc data-quality checklist
+  paper/                       paper source (Markdown drafts + docs/paper/latex/ for the LaTeX build)
+```
+
+## Reproducing the results
+
+Requires a running Postgres instance with `pgvector` (`memoryir-pg` in
+the setup this was developed against), API access to the model
+endpoints used (Azure OpenAI for gpt-4o-mini/gpt-4o, Azure AI Foundry
+for Llama-3.3-70B-Instruct — see `src/memoryir/llm.py` for the exact
+environment variables expected, conventionally read from a
+`creds.env` file kept outside the repository), and:
+
+```bash
+pip install -e ".[eval]"
+```
+
+Full pipeline (`eval/README.md` has the complete walkthrough):
+
+```bash
+# 1. Sanity-check the enumeration before touching the DB/API (no cost)
+python eval/run_full_sweep.py --dry-run
+
+# 2. Generate (resumable; checkpointed per trace_id)
+python eval/run_full_sweep.py --launch
+
+# 3. Label every derived memory against its scenario's ground truth
+python eval/label_full_corpus.py --launch
+
+# 4. Compute H1-H4 metrics + bootstrap CIs
+python eval/compute_metrics.py
+python eval/compute_h2_metrics.py
+python eval/compute_h3_metrics.py
+python eval/compute_h4_metrics.py
+python eval/bootstrap_h1.py && python eval/bootstrap_h2_h3_h4.py
+
+# 5. Regenerate figures
+python eval/make_figures.py
+```
+
+The real-document validation slice (`eval/run_real_document_validation.py`,
+`eval/label_real_document_validation.py`,
+`eval/compute_real_document_metrics.py`) and the two robustness checks
+(`eval/compute_h2_second_embedding_robustness.py`,
+`eval/compute_h4_window_sensitivity.py`) follow the same
+generate-then-label-then-analyze pattern and are independently runnable
+once the main corpus exists.
+
+Raw generated memories, embeddings, and labels live in Postgres and
+are not git-tracked (regenerable from the above given API access);
+summary CSVs and figures are released for convenience so results can
+be checked without regenerating the full corpus. See
+`docs/paper/open_science.md` for the exact list of what is released
+versus regenerable, and `docs/corpus_card.md` for corpus statistics.
+
+## Citation
+
+See `CITATION.cff`.
+
+## License
+
+MIT — see `LICENSE`.

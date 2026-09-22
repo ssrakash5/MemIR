@@ -411,7 +411,7 @@ contamination) for the full distinction. Set notation over blast-radius
 3. ~~Prefix property validated~~ — `spike/06_prefix_property.py` GREEN,
    2026-08-11.
 4. ~~MemSecBench full read~~ — done 2026-08-11; positioning survives
-   unchanged (see `docs/positioning.md`).
+   unchanged (see `docs/paper/related_work.md`).
 5. ~~`scenario_id`/pseudo-replication question, oracle-authoring method~~ —
    RESOLVED 2026-08-11: 24 scenarios, programmatic oracle generation from
    human-approved specs.
@@ -428,8 +428,8 @@ contamination) for the full distinction. Set notation over blast-radius
    LLM-primary + NLI verification + adjudication, marker tokens excluded
    from the label decision entirely (see `docs/labeling_protocol.md`).
 8. ~~MPBench, AgentPoison, MINJA full reads~~ — done 2026-08-12; the
-   entire `week1_execution_plan.md` §1 literature gate is closed (see
-   `docs/prior_art.md`).
+   related-work literature review is closed (see
+   `docs/paper/related_work.md`).
 9. ~~20 new scenarios reviewed/approved~~ — done 2026-08-12.
 10. ~~eval/ harness (v1, scoped) built and run~~ — done 2026-08-12: 48
     real traces (24 approved scenarios × 2 transforms), 480+ derived

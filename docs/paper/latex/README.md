@@ -26,9 +26,8 @@ this; keep it that way.
 
 `sections/{abstract,intro,threat_model,related_work,method,results,
 limitations,open_science,ethical_considerations}.tex` — direct
-conversion of the corresponding `docs/paper/*.md` files (`abstract.md`,
-`open_science.md`, `ethical_considerations.md` are new, drafted
-2026-09-09; see CLAUDE.md). `results.tex` also folds in bootstrap-CI
+conversion of the corresponding `docs/paper/*.md` files. `results.tex`
+also folds in bootstrap-CI
 numbers for H2–H4 that `docs/paper/results.md` was missing (that file
 has been updated to match). The `21,600 generated` vs. `21,570
 generated` inconsistency an external review caught (contributions list

@@ -1,6 +1,6 @@
 """Generate real derived-memory traces for labeling validation.
 
-Scope (see CLAUDE.md "Current phase"): runs every approved scenario under
+Scope: runs every approved scenario under
 configs/scenarios/ (24 total) through the harness to max_depth=5, at a
 fixed top_k/write_fanout, across a small set of derivation_transform
 values -- enough real output to build the remaining labeling worked

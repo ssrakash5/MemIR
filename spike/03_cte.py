@@ -1,6 +1,6 @@
 """Spike: recursive CTE with array path + depth cap + cycle test.
 
-week1_execution_plan.md §5 flags a specific footgun: the CTE terminates on
+A specific footgun to guard against: the CTE terminates on
 cycles only while selecting `id` alone. Adding a `depth` or `path` column
 makes every row distinct (because the path array differs), so a naive
 cycle check re-admits nodes and the recursion never terminates on its own —
