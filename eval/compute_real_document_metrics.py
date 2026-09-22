@@ -323,8 +323,37 @@ def main() -> None:
     h3_summary.to_csv(OUT_DIR / "rd_h3_laundering.csv", index=False)
     overall_laundering = scored["laundered"].mean() if len(scored) else float("nan")
     print(f"\nH3 laundering summary: {OUT_DIR / 'rd_h3_laundering.csv'}")
-    print(f"  Overall RD laundering rate: {overall_laundering:.4%} "
-          f"({int(scored['laundered'].sum())}/{len(scored)} CARRIES memories)")
+    print(f"  Overall RD laundering rate (pooled over {len(scored)} CARRIES memories, "
+          f"NOT the primary estimand -- see scenario-level CI below): {overall_laundering:.4%} "
+          f"({int(scored['laundered'].sum())}/{len(scored)})")
+
+    # ---- H3 laundering rate, scenario-level bootstrap CI (n=20, primary estimand) ----
+    # Per docs/preregistration.md SS5's marginalization rule: average within each
+    # scenario first (here, across all its CARRIES memories, since this slice has 1
+    # seed), then treat each of the 20 scenarios as one equally-weighted resampling
+    # unit -- same discipline as the child_2 leakage CI directly below. A scenario
+    # with zero CARRIES memories has an undefined per-scenario laundering rate and is
+    # excluded from this specific CI (still present in the pooled/by-breakdown tables
+    # above), noted in n_scenarios.
+    h3_scenario_rows = []
+    for sid in sorted(poison_form_by_scenario):
+        g = scored[scored["scenario_id"] == sid]
+        h3_scenario_rows.append({
+            "scenario_id": sid,
+            "poison_form": poison_form_by_scenario.get(sid),
+            "n_carries": len(g),
+            "laundering_rate": g["laundered"].mean() if len(g) else None,
+        })
+    h3_scenario_df = pd.DataFrame(h3_scenario_rows)
+    h3_scenario_df.to_csv(OUT_DIR / "rd_h3_laundering_by_scenario.csv", index=False)
+    h3_scored_scenarios = h3_scenario_df.dropna(subset=["laundering_rate"])
+    h3_vals = h3_scored_scenarios["laundering_rate"].to_numpy()
+    h3_strata = h3_scored_scenarios["poison_form"].to_numpy()
+    h3_mean, h3_lo, h3_hi = bootstrap_ci(h3_vals, h3_strata, N_BOOT, np.random.default_rng(RNG_SEED))
+    print(f"\nH3 laundering rate, scenario-level bootstrap CI "
+          f"(n={len(h3_vals)} scenarios with >=1 CARRIES memory, stratified by poison_form):")
+    print(f"  mean={h3_mean:.4f} [{h3_lo:.4f}, {h3_hi:.4f}]")
+    print(f"  Per-scenario table: {OUT_DIR / 'rd_h3_laundering_by_scenario.csv'}")
 
     # ---- Clean-sibling (child_2) semantic leakage rate ----
     child2_summary_rows = []

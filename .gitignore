@@ -18,6 +18,7 @@ results/real_document_validation/*
 !results/real_document_validation/rd_by_marker_type.csv
 !results/real_document_validation/rd_by_transform_topk.csv
 !results/real_document_validation/rd_h3_laundering.csv
+!results/real_document_validation/rd_h3_laundering_by_scenario.csv
 !results/real_document_validation/rd_child2_leakage_summary.csv
 !results/real_document_validation/rd_manual_review.csv
 !results/real_document_validation/rd_validation_summary.md

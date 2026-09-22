@@ -11,14 +11,24 @@ content — they do not establish that the exposure caused any real-world
 harm (an action taken, a decision made). A memory can be correctly
 flagged as exposed and contaminated without ever being acted upon.
 
-**Synthetic, LLM-authored corpus.** All 30 scenarios are hand-authored
-specifications with LLM-generated surface text, not derived from real
-production agent-memory traces or naturally occurring attacks. We
-deliberately designed a real-document validation slice into the
-original study plan (10–20 real documents, for ecological validity)
-specifically to partially address this; it was not completed within
-this paper's timeline and is left as a genuine, acknowledged gap rather
-than a claim we did not intend to make.
+**Synthetic, LLM-authored corpus; real-document validation is limited in
+scale.** All 30 main-corpus scenarios are hand-authored specifications
+with LLM-generated surface text, not derived from real production
+agent-memory traces or naturally occurring attacks. We added a 20-document
+public-source validation slice (§IV-G/Results) spanning five domains,
+which reproduced the principal provenance/containment tradeoffs
+(`depth_aware`'s ~30% inflation reduction, structural precision/recall)
+but yielded a substantially higher and more heterogeneous surface-marker
+laundering rate (19.1% [6.9%, 33.1%] scenario-level vs. 0.79% in the
+synthetic corpus). The slice is intended as an ecological-validity check,
+not an independently powered benchmark: documents were selected from
+public sources, one controlled compromise was constructed per document,
+and the resulting 20 scenarios do not represent production agent-memory
+traffic at any scale or diversity approaching real deployment. The gap
+between the synthetic and real-document laundering rates — and its wide
+confidence interval, driven by real per-scenario heterogeneity rather than
+measurement noise — cautions against treating synthetic-corpus effect
+sizes as directly representative of deployment settings.
 
 **Single embedding model, never pinned as the paper's actual choice.**
 Retrieval and the H2 attribution-score analysis both use

@@ -29,15 +29,35 @@ documents — the same pattern as the synthetic corpus's H4 result
 (`docs/paper/results.md`), now replicated out-of-corpus. Structural
 precision/recall are broadly consistent with the synthetic corpus too.
 
-**H3 marker-survival (laundering) rate: 13.53% (128/946 CARRIES memories)** —
-notably higher than the synthetic corpus's 0.79% overall laundering rate.
-This is a genuinely new, reportable finding, not noise: real source documents
-give the injected claim far more natural cover to be paraphrased away from its
-literal marker string while still asserting the underlying fact, than the
-synthetic corpus's more schematic source facts do. Worth a sentence in
-Results/Discussion, framed as "real documents may understate detectability
-via marker-matching more than the synthetic corpus suggests," not as a
-correction to H3's synthetic-corpus number.
+**H3 marker-survival (laundering) rate — two numbers, use the scenario-level
+one as primary:**
+
+- **Pooled over memories (NOT the primary estimand, reported for reference
+  only): 13.53% (128/946 CARRIES memories).**
+- **Scenario-level bootstrap CI (n=20, RD01–RD20 as the resampling unit,
+  stratified by `poison_form` — matches `docs/preregistration.md` §5's
+  marginalization rule, same discipline as the clean-sibling-leakage CI
+  below): mean = 19.11% [6.87%, 33.06%].**
+
+These two numbers disagree because per-scenario laundering rates are highly
+heterogeneous, not because of a computation error — see
+`rd_h3_laundering_by_scenario.csv`. Most scenarios launder 0% of their
+CARRIES memories; RD10 (97.2%, n=36), RD13 (61.7%, n=60), RD14 (60.0%,
+n=25), and RD20 (30.6%, n=49) launder heavily; the pooled-memory number is
+dominated by the large-n scenarios, while the scenario-level mean weights
+every scenario equally regardless of how many CARRIES memories it produced
+(and is pulled up by a few small-n scenarios — RD04 has only 7 CARRIES
+memories, 100% laundered; RD07 and RD18 have only 1 each). The wide CI
+[6.87%, 33.06%] is a direct, honest reflection of that heterogeneity at
+n=20, not a masking of it.
+
+Both numbers are still much higher than the synthetic corpus's 0.79%
+overall laundering rate — that comparison is real and reportable. The
+scenario-level 19.1% is the correct number to cite as the RD-slice
+estimate; the 13.5% pooled figure should only appear as a secondary,
+labeled-as-such reference point (e.g. "unweighted across memories") if
+cited at all, since it silently overweights RD10/RD13/RD14's large CARRIES
+counts relative to the other 16 scenarios.
 
 **Clean-sibling semantic leakage**: strict (CARRIES only) mean 3.83%
 [2.00%, 5.83%] of `child_2` (the branch whose true parents exclude the
@@ -136,18 +156,30 @@ Two specific findings worth flagging before any Results-section use:
    not a new problem, but confirms the same boundary issue shows up on real
    documents too.
 
+RD10 and RD14 are both `multi_hop_setup` (compositional-target) scenarios;
+RD13 is `authoritative_framing`; RD20 is `embedded_fact`. Two of the four
+high-laundering scenarios being `multi_hop_setup` is suggestive of a link to
+the already-documented REFERENCES-class/compositional-target weakness, but
+n=4 high-laundering scenarios is far too small to claim a `poison_form`
+effect here — flagged as a direction for a larger follow-up, not a finding.
+
 ## What this slice supports for the paper
 
 - Solid to cite as-is: the depth_aware ~30% inflation reduction replicates
   out-of-corpus; structural P_BR/R_BR are broadly consistent with the
   synthetic corpus.
 - Reportable as a genuine new finding, appropriately hedged (n=20, descriptive
-  only): the higher H3 laundering rate on real documents, and the qualitative
-  confirmation (not just label-rate correlation) that most `child_2=CARRIES`
-  cases are true CO_RETRIEVED-style leakage of the specific fabricated claim.
+  only): the scenario-level H3 laundering rate (19.1% [6.9%, 33.1%], vs. the
+  synthetic corpus's 0.79%) together with the qualitative confirmation (not
+  just label-rate correlation) that most `child_2=CARRIES` cases are true
+  CO_RETRIEVED-style leakage of the specific fabricated claim. The magnitude
+  of the real-vs-synthetic gap should be stated as a hypothesis about source-
+  text regime, not a conclusion the experiment directly establishes — and the
+  wide CI (driven by real per-scenario heterogeneity, not noise) should be
+  shown, not just the point estimate.
 - Should stay descriptive-only, not promoted to a headline claim: the
   cross-model asymmetry (zero llama leakage) — plausible but under-powered
-  at this n.
+  at this n; likewise the `multi_hop_setup`-laundering suggestion above.
 - Two labeling-pipeline observations (RD09 possible false negative, RD01
   REFERENCES/CARRIES boundary) belong in Limitations as confirming the
   already-documented REFERENCES-class weakness, not as new open issues.

@@ -175,6 +175,48 @@ This is independent evidence that `depth_aware`'s over-quarantine
 reduction is a real structural property of the policy, not an
 artifact of the specific poisoned scenarios it was measured on.
 
+## Real-document ecological-validity slice
+
+To test whether the synthetic-corpus findings persist under naturally
+authored source material, we constructed a held-out validation slice from
+20 frozen public documents spanning five domains (NIST, CISA, OWASP, FTC,
+AWS, Azure, FDA, IRS). We injected one controlled target claim per document
+while retaining verbatim benign source facts and distractors, and ran the
+frozen generation and labeling pipeline without prompt, labeler, threshold,
+or traversal changes. Across 240 traces and 2,400 derived memories, the
+principal containment tradeoff reproduced: `depth_aware` propagation
+reduced inflation from 3.57 [2.62, 4.72] under `flat_transitive`
+propagation to 2.50 [1.82, 3.31] (n=20 scenarios as the resampling unit,
+mirroring the main corpus's `scenario_id`-level bootstrap discipline),
+while `structural`-only propagation achieved $P_{BR}=0.796$ [0.689, 0.890]
+and $R_{BR}=0.973$ [0.960, 0.985] — broadly consistent with the synthetic
+corpus's precision/recall tradeoff.
+
+Clean-sibling contamination also persisted outside the synthetic corpus:
+across the 20 scenarios, the `child_2` branch (whose true structural
+parents exclude the injected fact) showed strict semantic-leakage rate
+3.83% [2.00%, 5.83%] and broad (CARRIES+REFERENCES) rate 15.83% [9.92%,
+22.00%]. We manually read the full population of 46 `child_2=CARRIES`
+memories (not a sample) rather than assuming the mechanism: 40/46 (87%)
+explicitly contained the injected claim's marker or wording despite lacking
+a structural-parent edge to it, 5/46 were ambiguous, and 1/46 looked like a
+labeler over-trigger — direct textual confirmation that this is genuine
+co-retrieval leakage, not a label-rate artifact.
+
+Surface-marker laundering (H3) was substantially higher than in the
+synthetic corpus and showed marked scenario-level heterogeneity: the
+scenario-level rate (n=20, the primary estimand, same resampling discipline
+as above) was 19.1% [6.9%, 33.1%], against 0.79% in the synthetic corpus.
+Most individual scenarios laundered 0% of their CARRIES memories, while
+four (three of five involving compositional or authoritative-framing
+poison forms) laundered 30–97%; the pooled-over-memories figure (13.5%,
+128/946) understates this heterogeneity by overweighting the highest-n
+scenarios. We report the wide CI plainly rather than treating the point
+estimate alone as a corpus-invariant quantity: the direction of the
+real-vs-synthetic gap is a robust finding, but its exact magnitude is
+sensitive to source-text regime and should not be extrapolated to
+deployment settings from this slice alone.
+
 ## Summary across hypotheses
 
 The consistent thread across H1, H3, and H4 is a genuine cross-model
