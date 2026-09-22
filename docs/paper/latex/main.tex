@@ -1,0 +1,54 @@
+% IEEE SaTML 2027 main-paper-track submission.
+% Template requirements (verified 2026-09-09 against satml.org/call-for-papers/
+% and .../checklist/): \documentclass[conference]{IEEEtran}, default 10pt,
+% IEEE two-column conference format. DO NOT modify font size, margins, or
+% spacing below -- the checklist states this is grounds for desk rejection.
+\documentclass[conference]{IEEEtran}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{longtable}
+
+% Double-blind: no \author block with real names/affiliations until camera-ready.
+\title{MemoryIR: Post-Incident Blast-Radius Reconstruction for Poisoned Agent Memory}
+\author{Anonymous Author(s)\\Submission under double-blind review}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\input{sections/intro}
+\input{sections/threat_model}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/results}
+\input{sections/limitations}
+
+% Discussion: not yet drafted -- see CLAUDE.md status summary.
+% Do not add a placeholder header for undrafted content.
+
+\input{sections/open_science}
+
+\input{sections/ethical_considerations}
+
+% LLM usage considerations: required by the SaTML checklist "if any LLM
+% was used" -- the user is writing this section themselves (explicit
+% instruction, 2026-09-09). Deliberately NOT stubbed out here; insert
+% \input{sections/llm_usage} once that file exists, before \bibliography.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+% longtable (used for the appendix's full per-depth data tables) requires
+% single-column mode to paginate -- switch layout for the appendix only.
+\onecolumn
+\input{sections/appendix}
+\twocolumn
+
+\end{document}

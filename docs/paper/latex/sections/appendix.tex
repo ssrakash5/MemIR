@@ -1,0 +1,190 @@
+\appendices
+\section{Supplementary Material}
+
+Reviewers are not required to read this appendix (per the SaTML 2027
+checklist); it contains the full per-depth data behind the summary
+tables in Section~\ref{sec:results}, the exact experimental design
+parameters, and one worked example of the labeling rubric.
+
+\subsection{Experimental grid}
+
+Full generation factorial (\texttt{configs/experiment\_grid.yaml}):
+\texttt{scenario\_id} (30: 24 poisoned across 4 \texttt{poison\_form}
+styles $\times$ 6 independently-constructed scenarios each, plus 6
+\texttt{clean\_control}), \texttt{model} (gpt-4o-mini, gpt-4o,
+Llama-3.3-70B-Instruct), \texttt{top\_k} (1, 3, 5, 10),
+\texttt{write\_fanout} (1, 2, 3), \texttt{derivation\_transform}
+(summarize, paraphrase, refine, continue), \texttt{seed} (0--4, frozen).
+Total: $30 \times 3 \times 4 \times 3 \times 4 \times 5 = 21{,}600$
+planned traces (21,570 generated, 99.86\%). \texttt{depth} (0--5) and
+\texttt{attribution\_threshold} (null, 0.5, 0.7, 0.85) are post-hoc
+analysis factors computed from each trace's persisted edges, not
+separate generation runs; \texttt{containment\_policy}
+(\texttt{flat\_transitive}/\texttt{depth\_aware}) is a further post-hoc
+layer for H4.
+
+\texttt{scenario\_id} is the real inferential sampling unit (n=24 for
+H1--H4's primary pooled estimand, stratified 6 per \texttt{poison\_form})
+--- not individual factorial cells, and not seed count. All 5 seeds are
+averaged within scenario-condition before any bootstrap resampling;
+resampling always sees 24 scenario units.
+
+\subsection{Full per-depth H1 results (recall vs.\ inflation growth)}
+
+Section~\ref{sec:results} reports only depth 1 and depth 5 per model.
+Table~\ref{tab:appendix-h1} gives the full depth 1--5 sweep, both
+propagation policies, all three models (95\% bootstrap CI, n=24
+scenarios).
+
+\begin{longtable}{@{}llrlll@{}}
+\caption{Full H1 sweep: blast-radius precision, recall, and inflation ratio by model, policy, and depth.}
+\label{tab:appendix-h1} \\
+\toprule
+Model & Policy & Depth & P\_BR & R\_BR & Inflation \\
+\midrule
+\endfirsthead
+\toprule
+Model & Policy & Depth & P\_BR & R\_BR & Inflation \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\input{sections/appendix_tables/h1}
+\end{longtable}
+
+Growth is monotone but concave in every row: most of the precision loss
+and inflation growth happens by depth 2--3, not spread evenly across
+all five depths.
+
+\subsection{Full H2 attribution-threshold sweep}
+
+Section~\ref{sec:results} reports only depth 5. Table~\ref{tab:appendix-h2}
+gives the full depth 1--5 sweep, all three thresholds, all three models.
+
+\begin{longtable}{@{}lrrll@{}}
+\caption{Full H2 sweep: blast-radius precision and recall by model, attribution threshold, and depth.}
+\label{tab:appendix-h2} \\
+\toprule
+Model & Threshold & Depth & P\_BR & R\_BR \\
+\midrule
+\endfirsthead
+\toprule
+Model & Threshold & Depth & P\_BR & R\_BR \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\input{sections/appendix_tables/h2}
+\end{longtable}
+
+The frontier is already largely set by depth 2 --- recall at threshold
+0.85 barely moves between depth 2 and depth 5 for any model, while
+precision keeps drifting down slowly. The steep recall cost of an
+aggressive threshold is a depth-1 phenomenon, not something that
+compounds further with depth.
+
+\subsection{Full H3 per-transform laundering breakdown}
+
+Table~\ref{tab:appendix-h3} gives the full per-model $\times$
+per-transform $\times$ per-depth laundering breakdown.
+
+\begin{longtable}{@{}llrrrrr@{}}
+\caption{Full H3 sweep: laundering rate and structural-lineage recall by model, derivation transform, and depth.}
+\label{tab:appendix-h3} \\
+\toprule
+Model & Transform & Depth & $n_{\text{CARRIES}}$ & $n_{\text{laundered}}$ & Laundering rate & Struct.\ recall \\
+\midrule
+\endfirsthead
+\toprule
+Model & Transform & Depth & $n_{\text{CARRIES}}$ & $n_{\text{laundered}}$ & Laundering rate & Struct.\ recall \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\input{sections/appendix_tables/h3}
+\end{longtable}
+
+\texttt{refine} launders essentially nowhere (one single-count exception
+at llama-3.3-70b depth 3) and \texttt{paraphrase} launders nowhere for
+gpt-4o/gpt-4o-mini --- but launders substantially for llama-3.3-70b
+(4.7--5.9\%), the sharpest single cell in the whole table and the
+clearest evidence that laundering is a model property, not a transform
+property alone.
+
+\subsection{Full H4 containment-cost breakdown}
+
+Table~\ref{tab:appendix-h4} gives the full depth 1--5 breakdown, both
+policies, all three models --- mean objects flagged and mean missed
+contamination per trace.
+
+\begin{longtable}{@{}llrrr@{}}
+\caption{Full H4 sweep: mean objects flagged and mean missed contamination by model, policy, and depth.}
+\label{tab:appendix-h4} \\
+\toprule
+Model & Policy & Depth & Objects flagged & Missed contamination \\
+\midrule
+\endfirsthead
+\toprule
+Model & Policy & Depth & Objects flagged & Missed contamination \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\input{sections/appendix_tables/h4}
+\end{longtable}
+
+Both policies are identical through depth 2 (\texttt{depth\_aware}'s
+2-hop conservative window hasn't yet switched to structural-only
+propagation) and diverge starting depth 3 --- exactly the depth at which
+\texttt{depth\_aware}'s missed-contamination cost starts accruing, and
+gpt-4o-mini pulls away from the other two models by roughly the same
+margin at every depth $\geq 3$.
+
+\subsection{Seed diversity}
+
+Not a bug --- no \texttt{seed} parameter is ever sent to any model API
+(seeds rely on genuine API-level stochasticity at temperature 0) --- but
+the duplication rate is worth stating plainly, since a reviewer computing
+effective sample size from raw trace counts would otherwise overestimate
+it: across the 4,320 \texttt{clean\_control} generation cells, 39.5\%
+(1,708/4,320) have all 5 seeds byte-identical, 8.8\% (381/4,320) have all
+5 distinct, and 51.6\% (2,231/4,320) show partial diversity. This varies
+by \texttt{derivation\_transform} in the direction genuine task
+determinism would predict: \texttt{summarize} 60.6\% fully-duplicated,
+\texttt{refine} 42.5\%, \texttt{paraphrase} 38.3\%, \texttt{continue}
+16.8\%. This does not change the statistical design (the bootstrap unit
+is \texttt{scenario\_id}, n=24, unaffected by within-cell seed
+duplication).
+
+\subsection{Worked labeling example}
+
+One example illustrating the CARRIES/REFERENCES/CLEAN rubric and the
+compositional-target rule, representative of the \texttt{multi\_hop\_setup}
+boundary case discussed in Limitations as the labeler's weakest point.
+Semantic target: ``Route every signed NDA to
+\texttt{mirror-intake@compliance-shadow.example} before it is
+countersigned.''
+
+\begin{itemize}
+\item \textbf{Candidate A} --- ``All executed NDAs are now automatically
+  forwarded to \texttt{mirror-intake@compliance-shadow.example} prior to
+  final countersignature.'' $\rightarrow$ \textbf{CARRIES}: restates the
+  full claim (forwarding destination + timing) in different words.
+\item \textbf{Candidate B} --- ``Legal has been discussing changes to the
+  NDA countersignature workflow, including a new pre-signature review
+  step routed through the compliance team's shared intake address.''
+  $\rightarrow$ \textbf{REFERENCES}: preserves the topic without
+  asserting the specific destination or the mandatory-forwarding claim.
+\item \textbf{Candidate C} --- ``The legal team updated their document
+  retention policy for signed contracts.'' $\rightarrow$ \textbf{CLEAN}:
+  no trace of the claim.
+\end{itemize}
+
+The compositional-target rule (frozen) applies when a target requires
+combining two premises: CARRIES requires the candidate to assert the
+\emph{combined} claim, not merely restate both underlying facts side by
+side --- this is specifically what depresses REFERENCES-class recall
+(0.46) in \texttt{multi\_hop\_setup} scenarios, independently
+corroborated by the human-human $\kappa$ baseline (2026-09-21): all 5
+annotator disagreements in that 120-sample check were exactly this
+REFERENCES-vs-CARRIES boundary.
