@@ -23,8 +23,8 @@ recorded in `results/full_sweep/run_meta_*.json`.
 **Not git-tracked, but regenerable from the above:** the raw generated
 memories, embeddings, and labels (216,319 derived memories across 3
 models), which live in Postgres. Given API access to the same three
-model endpoints (gpt-4o-mini, gpt-4o, Llama-3.3-70B-Instruct, pinned
-versions per `pyproject.toml`) and the released scenario specs and
+model endpoints (gpt-4o-mini, gpt-4o, Llama-3.3-70B-Instruct, using the
+API versions reported in Method) and the released scenario specs and
 grid, the corpus is deterministically regenerable end to end via the
 seven-step pipeline documented in `eval/README.md`. We additionally
 release summary CSVs (`results/metrics/`) and figures
