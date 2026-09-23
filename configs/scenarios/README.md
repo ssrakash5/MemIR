@@ -1,12 +1,21 @@
-# Full scenario corpus (24 total)
+# Synthetic scenario corpus (24 total)
 
-Parent directory for the complete 24-scenario design (4 `poison_form` × 6
-independently-constructed scenarios each). `pilot/` holds the 4 originally
-HUMAN-APPROVED scenarios (`_01` of each style). This directory holds the
-remaining 20, drafted in 4 batches of 5 (one batch per `poison_form`) on
-2026-08-12, then reviewed and corrected the same day.
+This directory holds the 24-scenario synthetic design (4 `poison_form`
+styles × 6 independently-constructed scenarios each) that the main
+corpus is generated from. `pilot/` holds the 4 original scenarios
+(`_01` of each style); this directory holds the remaining 20, drafted
+in 4 batches of 5 (one batch per `poison_form`).
 
-## Status: all 24 scenarios HUMAN-APPROVED
+All 24 scenarios were human-reviewed before any generation ran, and
+all 21,570 traces / 216,319 labeled memories in the corpus were
+produced from exactly these files — see `docs/corpus_card.md` for the
+full generation numbers. A separate, real-document version of this
+same idea lives in `real_documents/` and `configs/scenarios/real_documents/`
+(20 scenarios built from real public documents instead of synthetic
+text; see `real_documents/VALIDATION_CHECKLIST.md` for how those were
+reviewed).
+
+## Human review: all 24 scenarios approved
 
 | poison_form | `_01` | `_02`–`_06` |
 |---|---|---|
@@ -95,10 +104,3 @@ git history for the Batch 4 commit). Check for **lexical** overlap with
 the poison's key terms during scenario authoring, not just topical
 overlap with `child_2`.
 
-## Not yet done
-
-- Marker-token placement isn't applied to any scenario yet — per
-  `docs/labeling_protocol.md`, exact format is still to be designed.
-- None of the 24 scenarios have been run through the (not-yet-built)
-  corpus-generation script or `eval/` harness — they're approved
-  human-authored input to that pipeline, not validated generation output.
