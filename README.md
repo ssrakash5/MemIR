@@ -102,10 +102,6 @@ be checked without regenerating the full corpus. See
 `docs/paper/open_science.md` for the exact list of what is released
 versus regenerable, and `docs/corpus_card.md` for corpus statistics.
 
-## Citation
-
-See `CITATION.cff`.
-
 ## License
 
 MIT — see `LICENSE`.

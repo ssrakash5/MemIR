@@ -55,7 +55,6 @@ INCLUDE_PATHS = [
     "results/full_sweep",            # run_meta_*.json provenance only -- launch_log/err excluded below
     "results/real_document_validation",  # RD-slice compact tables + manual-review file -- *_raw.csv excluded below
     "pyproject.toml",
-    "CITATION.cff",
     "LICENSE",
     "README.md",
 ]
